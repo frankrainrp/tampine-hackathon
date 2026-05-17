@@ -1,0 +1,201 @@
+.loginPage {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 3rem;
+  padding: 2rem;
+}
+
+.header {
+  text-align: center;
+  animation: fadeSlideUp 0.8s ease-out;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.logoIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.logoIcon svg {
+  width: 28px;
+  height: 28px;
+  fill: #f5f5f5;
+}
+
+.title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-weight: 400;
+}
+
+.roleCards {
+  display: flex;
+  gap: 2.5rem;
+  animation: fadeSlideUp 1s ease-out 0.2s both;
+}
+
+/* Water-droplet glassmorphism card */
+.roleCard {
+  --w: 180px;
+  --h: 200px;
+  --r: 28px;
+  --tr: 25%;
+  position: relative;
+  width: var(--w);
+  height: var(--h);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  border-radius: var(--r);
+  border: 1px double rgba(51, 51, 51, 0.08);
+  box-shadow: var(--shadow-glass);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+  filter: brightness(0.9);
+  transition: transform 0.3s ease, filter 0.3s ease;
+  text-decoration: none;
+}
+
+.roleCard:hover {
+  transform: translateY(-6px) scale(1.03);
+  filter: brightness(0.95);
+}
+
+.roleCard:active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+/* Inner shadow ring — from reference CSS :before */
+.roleCard::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: 35%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(var(--w) - 16px);
+  height: calc(var(--h) - 16px);
+  border-radius: var(--r);
+  border: 1px solid rgba(0, 0, 0, 0.9);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+/* Top/bottom highlight gradient — from reference CSS :after */
+.roleCard::after {
+  z-index: 2;
+  content: '';
+  position: absolute;
+  width: var(--w);
+  height: var(--h);
+  border-radius: var(--r);
+  filter: blur(3px);
+  pointer-events: none;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    transparent var(--tr),
+    transparent calc(100% - var(--tr)),
+    rgba(255, 255, 255, 0.8) 100%
+  );
+}
+
+.circleOverlay {
+  position: absolute;
+  width: calc(var(--w) - 9px);
+  height: calc(var(--h) - 9px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--r);
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.roleIconWrap {
+  position: relative;
+  z-index: 3;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.roleIconWrap svg {
+  width: 30px;
+  height: 30px;
+  fill: #f5f5f5;
+  filter: drop-shadow(0 2px 3px rgba(102, 102, 102, 0.2));
+}
+
+.roleName {
+  position: relative;
+  z-index: 3;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  filter: drop-shadow(0 2px 3px rgba(102, 102, 102, 0.15));
+}
+
+.roleDesc {
+  position: relative;
+  z-index: 3;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0 1rem;
+  line-height: 1.4;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 520px) {
+  .roleCards {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .title {
+    font-size: 1.5rem;
+  }
+}
