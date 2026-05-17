@@ -5,13 +5,12 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  gap: 3rem;
+  gap: 2.5rem;
   padding: 2rem;
 }
 
 .header {
   text-align: center;
-  animation: fadeSlideUp 0.8s ease-out;
 }
 
 .logo {
@@ -19,7 +18,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .logoIcon {
@@ -48,154 +47,269 @@
 }
 
 .subtitle {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--text-muted);
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
   font-weight: 400;
 }
 
-.roleCards {
-  display: flex;
-  gap: 2.5rem;
-  animation: fadeSlideUp 1s ease-out 0.2s both;
-}
-
-/* Water-droplet glassmorphism card */
-.roleCard {
-  --w: 180px;
-  --h: 200px;
-  --r: 28px;
-  --tr: 25%;
+/* ──── Login Card (Glassmorphism) ──── */
+.loginCard {
+  --w: 380px;
+  --r: 24px;
   position: relative;
   width: var(--w);
-  height: var(--h);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
+  max-width: 90vw;
   border-radius: var(--r);
   border: 1px double rgba(51, 51, 51, 0.08);
   box-shadow: var(--shadow-glass);
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(2px);
-  cursor: pointer;
-  filter: brightness(0.9);
-  transition: transform 0.3s ease, filter 0.3s ease;
-  text-decoration: none;
+  filter: brightness(0.92);
+  overflow: hidden;
 }
 
-.roleCard:hover {
-  transform: translateY(-6px) scale(1.03);
-  filter: brightness(0.95);
-}
-
-.roleCard:active {
-  transform: translateY(-2px) scale(0.98);
-}
-
-/* Inner shadow ring — from reference CSS :before */
-.roleCard::before {
+.loginCard::before {
   content: '';
   position: absolute;
   z-index: 1;
   top: 35%;
   left: 50%;
   transform: translateX(-50%);
-  width: calc(var(--w) - 16px);
-  height: calc(var(--h) - 16px);
+  width: calc(var(--w) - 20px);
+  height: calc(100% - 20px);
   border-radius: var(--r);
   border: 1px solid rgba(0, 0, 0, 0.9);
   filter: blur(8px);
   pointer-events: none;
 }
 
-/* Top/bottom highlight gradient — from reference CSS :after */
-.roleCard::after {
+.loginCard::after {
   z-index: 2;
   content: '';
   position: absolute;
-  width: var(--w);
-  height: var(--h);
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
   border-radius: var(--r);
   filter: blur(3px);
   pointer-events: none;
   background: linear-gradient(
     45deg,
     rgba(255, 255, 255, 0.8) 0%,
-    transparent var(--tr),
-    transparent calc(100% - var(--tr)),
+    transparent 25%,
+    transparent 75%,
     rgba(255, 255, 255, 0.8) 100%
   );
 }
 
-.circleOverlay {
+.cardGlass {
   position: absolute;
-  width: calc(var(--w) - 9px);
-  height: calc(var(--h) - 9px);
+  inset: 3px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--r);
-  filter: blur(1px);
+  border-radius: calc(var(--r) - 2px);
+  filter: blur(0.5px);
   pointer-events: none;
 }
 
-.roleIconWrap {
+.formContent {
   position: relative;
-  z-index: 3;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--accent);
+  z-index: 5;
+  padding: 2.5rem 2rem 2rem;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-.roleIconWrap svg {
-  width: 30px;
-  height: 30px;
-  fill: #f5f5f5;
-  filter: drop-shadow(0 2px 3px rgba(102, 102, 102, 0.2));
-}
-
-.roleName {
-  position: relative;
-  z-index: 3;
+.formTitle {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-secondary);
-  filter: drop-shadow(0 2px 3px rgba(102, 102, 102, 0.15));
-}
-
-.roleDesc {
-  position: relative;
-  z-index: 3;
-  font-size: 0.78rem;
-  color: var(--text-muted);
+  color: var(--text-primary);
   text-align: center;
-  padding: 0 1rem;
-  line-height: 1.4;
+  margin-bottom: 0.25rem;
 }
 
-@keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ──── Input Fields ──── */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.inputLabel {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.inputLabel svg {
+  width: 15px;
+  height: 15px;
+  fill: var(--text-muted);
+}
+
+.input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(6px);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(74, 76, 105, 0.12);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.passwordWrap {
+  position: relative;
+}
+
+.passwordWrap .input {
+  padding-right: 42px;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.eyeBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.eyeBtn svg {
+  width: 18px;
+  height: 18px;
+  fill: var(--text-muted);
+}
+
+/* ──── Error Message ──── */
+.errorMsg {
+  font-size: 0.82rem;
+  color: #dc3232;
+  background: rgba(220, 50, 50, 0.06);
+  border: 1px solid rgba(220, 50, 50, 0.15);
+  border-radius: 10px;
+  padding: 0.55rem 0.85rem;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* ──── Submit Button ──── */
+.submitBtn {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 14px;
+  border: none;
+  background: var(--accent);
+  color: #f5f5f5;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+}
+
+.submitBtn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.submitBtn:active {
+  transform: translateY(0);
+}
+
+.submitBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #f5f5f5;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ──── Test Account Hints ──── */
+.testHint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.quickFill {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  font-weight: 500;
+}
+
+.quickFill:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 520px) {
-  .roleCards {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
   .title {
     font-size: 1.5rem;
+  }
+  .loginCard {
+    --w: 100%;
+  }
+  .formContent {
+    padding: 2rem 1.25rem 1.5rem;
   }
 }

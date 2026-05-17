@@ -32,7 +32,7 @@ const QUICK_STARTERS = [
 
 export default function WorkspacePage() {
   const {
-    role, logout,
+    role, logout, currentUser,
     messages, addMessage, clearMessages,
     sidebarOpen, toggleSidebar,
     sessionId, setSessionId,
@@ -302,7 +302,7 @@ export default function WorkspacePage() {
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
 
-    recognition.lang = 'zh-CN';    // 默认中文，也支持英文自动识别
+    recognition.lang = 'en-US';
     recognition.continuous = false;  // 单次识别
     recognition.interimResults = true; // 实时显示中间结果
 
@@ -360,7 +360,9 @@ export default function WorkspacePage() {
             data-online={backendAvailable}
             data-ai={aiConfigured}
           />
-          <span className={styles.roleBadge}>{role}</span>
+          <span className={styles.roleBadge}>
+            {currentUser ? `${currentUser.avatar} ${currentUser.display_name}` : role}
+          </span>
           <button className={styles.logoutBtn} onClick={logout} aria-label="Sign out">
             <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
           </button>
@@ -551,7 +553,7 @@ export default function WorkspacePage() {
                   className={`${styles.voiceBtn} ${isListening ? styles.voiceBtnActive : ''}`}
                   onClick={toggleVoiceInput}
                   aria-label={isListening ? 'Stop recording' : 'Start voice input'}
-                  title={isListening ? '停止录音' : '语音输入'}
+                  title={isListening ? 'Stop recording' : 'Voice input'}
                 >
                   <svg viewBox="0 0 24 24">
                     <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>

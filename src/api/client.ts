@@ -16,6 +16,22 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return json.data as T;
 }
 
+// ─── 用户登录 ────────────────────────────────────────────────────
+export interface LoginUser {
+  id: string;
+  username: string;
+  display_name: string;
+  role: 'resident' | 'staff';
+  avatar: string;
+}
+
+export function login(username: string, password: string) {
+  return request<LoginUser>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  });
+}
+
 // ─── 健康检查 ────────────────────────────────────────────────────
 export interface HealthStatus {
   ok: boolean;

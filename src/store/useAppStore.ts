@@ -2,6 +2,14 @@ import { create } from 'zustand';
 
 export type UserRole = 'resident' | 'staff' | null;
 
+export interface CurrentUser {
+  id: string;
+  username: string;
+  display_name: string;
+  role: 'resident' | 'staff';
+  avatar: string;
+}
+
 export interface BulletPoint {
   icon: 'who' | 'what' | 'when' | 'where' | 'why' | 'how';
   label: string;
@@ -49,7 +57,10 @@ export interface ChatMessage {
 interface AppState {
   /* Auth */
   role: UserRole;
+  currentUser: CurrentUser | null;
   setRole: (role: UserRole) => void;
+  setCurrentUser: (user: CurrentUser | null) => void;
+  loginAs: (user: CurrentUser) => void;
   logout: () => void;
 
   /* Session — 与后端 SQLite 同步 */
@@ -72,8 +83,11 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set) => ({
   role: null,
+  currentUser: null,
   setRole: (role) => set({ role }),
-  logout: () => set({ role: null, messages: [], sessionId: null }),
+  setCurrentUser: (user) => set({ currentUser: user }),
+  loginAs: (user) => set({ role: user.role, currentUser: user, messages: [], sessionId: null }),
+  logout: () => set({ role: null, currentUser: null, messages: [], sessionId: null }),
 
   sessionId: null,
   setSessionId: (id) => set({ sessionId: id }),
@@ -88,3 +102,4 @@ export const useAppStore = create<AppState>((set) => ({
   sidebarOpen: false,
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
 }));
+

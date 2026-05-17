@@ -1,25 +1,36 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
-import type { UserRole } from '../store/useAppStore';
+import { login } from '../api/client';
 import styles from './LoginPage.module.css';
 
-const ResidentIcon = () => (
-  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-  </svg>
-);
-
-const StaffIcon = () => (
-  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 7h-4V5l-2-2h-4L8 5v2H4c-1.1 0-2 .9-2 2v5c0 .75.4 1.38 1 1.73V19c0 1.11.89 2 2 2h14c1.11 0 2-.89 2-2v-3.28c.59-.35 1-.99 1-1.72V9c0-1.1-.9-2-2-2zM10 5h4v2h-4V5zM4 9h16v5h-5v-3H9v3H4V9zm9 6h-2v-2h2v2zm6 4H5v-3h4v1h6v-1h4v3z"/>
-  </svg>
-);
-
 export default function LoginPage() {
-  const setRole = useAppStore((s) => s.setRole);
+  const loginAs = useAppStore((s) => s.loginAs);
 
-  const handleSelect = (role: UserRole) => {
-    setRole(role);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim() || !password.trim()) {
+      setError('Please enter username and password');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const user = await login(username.trim(), password);
+      loginAs(user);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,41 +49,107 @@ export default function LoginPage() {
           </div>
           <h1 className={styles.title}>Smart Service Agent</h1>
         </div>
-        <p className={styles.subtitle}>AI-Powered Public Service Terminal — Select your role to begin</p>
+        <p className={styles.subtitle}>AI-Powered Public Service Terminal — Sign in to continue</p>
       </motion.div>
 
-      <div className={styles.roleCards}>
-        {([
-          {
-            role: 'resident' as UserRole,
-            icon: <ResidentIcon />,
-            name: 'Resident',
-            desc: 'Access public services, track applications',
-          },
-          {
-            role: 'staff' as UserRole,
-            icon: <StaffIcon />,
-            name: 'Staff',
-            desc: 'Manage cases, view dashboards',
-          },
-        ]).map((item, i) => (
-          <motion.div
-            key={item.role}
-            className={styles.roleCard}
-            onClick={() => handleSelect(item.role)}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 + i * 0.15, ease: 'easeOut' }}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
+      <motion.form
+        className={styles.loginCard}
+        onSubmit={handleSubmit}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
+      >
+        <div className={styles.cardGlass} />
+
+        <div className={styles.formContent}>
+          <h2 className={styles.formTitle}>Sign In</h2>
+
+          {/* Username */}
+          <div className={styles.inputGroup}>
+            <label className={styles.inputLabel} htmlFor="login-username">
+              <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              Username
+            </label>
+            <input
+              id="login-username"
+              className={styles.input}
+              type="text"
+              value={username}
+              onChange={(e) => { setUsername(e.target.value); setError(''); }}
+              placeholder="Enter your username"
+              autoComplete="username"
+              autoFocus
+            />
+          </div>
+
+          {/* Password */}
+          <div className={styles.inputGroup}>
+            <label className={styles.inputLabel} htmlFor="login-password">
+              <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+              Password
+            </label>
+            <div className={styles.passwordWrap}>
+              <input
+                id="login-password"
+                className={styles.input}
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                className={styles.eyeBtn}
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <svg viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Error message */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                className={styles.errorMsg}
+                initial={{ opacity: 0, y: -8, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                exit={{ opacity: 0, y: -8, height: 0 }}
+              >
+                ⚠️ {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            className={styles.submitBtn}
+            disabled={loading}
           >
-            <div className={styles.circleOverlay} />
-            <div className={styles.roleIconWrap}>{item.icon}</div>
-            <span className={styles.roleName}>{item.name}</span>
-            <span className={styles.roleDesc}>{item.desc}</span>
-          </motion.div>
-        ))}
-      </div>
+            {loading ? (
+              <span className={styles.spinner} />
+            ) : 'Sign In'}
+          </button>
+
+          {/* Quick test hint */}
+          <div className={styles.testHint}>
+            <span>Quick login:</span>
+            <button type="button" className={styles.quickFill} onClick={() => { setUsername('resident'); setPassword('resident123'); setError(''); }}>
+              Resident
+            </button>
+            <button type="button" className={styles.quickFill} onClick={() => { setUsername('admin'); setPassword('Admin@2026'); setError(''); }}>
+              Admin
+            </button>
+          </div>
+        </div>
+      </motion.form>
     </div>
   );
 }

@@ -22,28 +22,27 @@ const SPECIAL_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<
   ProgressCard,
 };
 
-/* ──── Action ID → Prompt 映射 ──── */
+/* ──── Action ID → Prompt mapping ──── */
 function actionIdToPrompt(actionId: string, label: string): string {
-  // 将 snake_case 的 action_id 转为自然语言 prompt
   const promptMap: Record<string, string> = {
-    start_inquiry: '我想开始咨询，请告诉我详细的服务流程和所需材料',
-    check_status: '请帮我查询当前的申请状态和进度',
-    start_service: '我想开始办理这项服务，请告诉我详细步骤',
-    get_details: '请提供更详细的信息和具体说明',
-    book_appointment: '我想预约办理时间，请告诉我可选时段',
-    submit_application: '我想提交申请，请告诉我需要准备哪些材料',
-    view_requirements: '请列出办理这项业务的所有要求和条件',
-    contact_support: '我需要人工客服帮助，请提供联系方式',
-    download_form: '请提供需要下载的表格和文件链接',
-    track_progress: '请帮我追踪办理进度',
-    get_directions: '请告诉我办理地点的具体地址和交通方式',
-    learn_more: '我想了解更多相关信息',
-    apply_now: '我现在想申请，请引导我完成申请流程',
-    view_fees: '请告诉我办理费用和缴费方式',
-    check_eligibility: '请帮我检查我是否符合申请条件',
+    start_inquiry: 'I would like to start an inquiry. Please tell me the detailed service process and required documents.',
+    check_status: 'Please help me check the current application status and progress.',
+    start_service: 'I want to start this service. Please guide me through the detailed steps.',
+    get_details: 'Please provide more detailed information and specific instructions.',
+    book_appointment: 'I would like to book an appointment. Please show me available time slots.',
+    submit_application: 'I want to submit an application. What documents do I need to prepare?',
+    view_requirements: 'Please list all the requirements and conditions for this service.',
+    contact_support: 'I need human support. Please provide contact information.',
+    download_form: 'Please provide the download links for required forms and documents.',
+    track_progress: 'Please help me track the processing progress.',
+    get_directions: 'Please tell me the address and directions to the service location.',
+    learn_more: 'I would like to learn more about this topic.',
+    apply_now: 'I want to apply now. Please guide me through the application process.',
+    view_fees: 'Please tell me the fees and payment methods.',
+    check_eligibility: 'Please help me check if I meet the eligibility requirements.',
   };
 
-  return promptMap[actionId] || `${label}：请提供更详细的信息和操作指引`;
+  return promptMap[actionId] || `${label}: Please provide more details and guidance.`;
 }
 
 /* ──── DynamicBulletList ──── */

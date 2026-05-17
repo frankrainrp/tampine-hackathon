@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 // 初始化路由
+import authRouter from './routes/auth.js';
 import sessionsRouter from './routes/sessions.js';
 import chatRouter from './routes/chat.js';
 
@@ -28,6 +29,7 @@ app.use((req, _res, next) => {
 });
 
 // ─── 路由注册 ──────────────────────────────────────────────────
+app.use('/api/auth', authRouter);
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/chat', chatRouter);
 
