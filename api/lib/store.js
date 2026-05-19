@@ -71,6 +71,13 @@ export function createSession(role, title = 'New Conversation') {
   return { ...session, message_count: 0 };
 }
 
+export function createSessionWithId(id, role = 'resident', title = 'Restored Conversation') {
+  const now = Math.floor(Date.now() / 1000);
+  const session = { id, user_id: null, role, title, created_at: now, updated_at: now };
+  sessions.set(id, session);
+  return { ...session, message_count: 0 };
+}
+
 export function getSession(id) {
   return sessions.get(id) || null;
 }

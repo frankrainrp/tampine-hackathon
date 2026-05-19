@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { getSession, addMessage, getRecentMessages, updateSessionTitle, updateSessionTimestamp } from '../lib/store.js';
+import { getSession, createSessionWithId, addMessage, getRecentMessages, updateSessionTitle, updateSessionTimestamp } from '../lib/store.js';
 
 // ─── 读取 API 配置 ──────────────────────────────────────────────
 function getApiConfig() {
@@ -108,9 +108,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: 'session_id and content are required' });
   }
 
-  const session = getSession(session_id);
+  let session = getSession(session_id);
   if (!session) {
-    return res.status(404).json({ ok: false, error: 'Session not found' });
+    // Vercel Serverless 冷启动会导致内存中的 session 丢失，这里我们静默帮用户重建一个，避免报错
+    session = createSessionWithId(session_id, 'resident', 'Restored Conversation');
   }
 
   // 保存用户消息
