@@ -15,9 +15,14 @@ export default function handler(req, res) {
   if (req.method === 'PATCH') {
     try {
       const { title } = req.body || {};
-      const session = renameSession(id, title);
+      let session = renameSession(id, title);
+      
+      // 容错：如果 Vercel 冷启动导致 session 丢失，我们可以静默创建一个并重命名
       if (!session) {
-        return res.status(404).json({ ok: false, error: 'Session not found' });
+        import('../lib/store.js').then(({ createSessionWithId }) => {
+           createSessionWithId(id, 'resident', title);
+        });
+        session = { id, title, role: 'resident' };
       }
       return res.json({ ok: true, data: session });
     } catch (err) {
