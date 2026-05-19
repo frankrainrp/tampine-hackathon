@@ -3,7 +3,7 @@
  * Base URL: http://localhost:3001
  */
 
-const BASE = 'http://localhost:3001/api';
+const BASE = '/api';
 
 // ─── 通用请求封装 ────────────────────────────────────────────────
 async function request<T>(path: string, options?: RequestInit): Promise<T> {

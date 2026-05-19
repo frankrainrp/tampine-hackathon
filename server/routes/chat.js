@@ -6,7 +6,7 @@ import db from '../db.js';
 function getApiConfig() {
   const baseUrl = process.env.API_BASE_URL || '';
   const apiKey = process.env.API_KEY || '';
-  const model = process.env.API_MODEL || 'deepseek-chat';
+  const model = process.env.API_MODEL || 'deepseek-v4-flash';
   const configured = Boolean(baseUrl && apiKey && apiKey.length > 10 && !apiKey.includes('xxxxx'));
   return { baseUrl, apiKey, model, configured };
 }

@@ -22,3 +22,17 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ─── 环境变量（含 API Key，不要提交）──────────────────────────
+server/.env
+.env
+.env.local
+.env.*.local
+
+# ─── SQLite 数据库文件（本地开发用）─────────────────────────────
+server/data/*.db
+server/data/*.db-shm
+server/data/*.db-wal
+
+# ─── Vercel ──────────────────────────────────────────────────
+.vercel

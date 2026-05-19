@@ -16,7 +16,7 @@ const app = express();
 
 // ─── 中间件 ────────────────────────────────────────────────────
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: true,
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -42,7 +42,7 @@ app.get('/api/health', (req, res) => {
     status: 'running',
     timestamp: new Date().toISOString(),
     ai_configured: configured,
-    model: process.env.API_MODEL || 'deepseek-chat',
+    model: process.env.API_MODEL || 'deepseek-v4-flash',
     base_url: process.env.API_BASE_URL || 'https://api.deepseek.com/v1',
   });
 });
