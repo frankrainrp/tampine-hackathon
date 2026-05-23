@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import type { ChatMessage as ChatMessageType, FieldEntry, FieldType, PrepItem } from '../store/useAppStore';
+import type {
+  ChatMessage as ChatMessageType,
+  FieldEntry,
+  FieldType,
+  PrepItem,
+  InputFieldSpec,
+  InputFieldFilled,
+} from '../store/useAppStore';
 import styles from './ChatMessage.module.css';
 
 /* ──── Field type → icon ──── */
@@ -158,6 +165,121 @@ function AgentPrepListCard({
   );
 }
 
+/* ──── Agent — Input Form (collect everything up-front) ──── */
+function AgentInputFormCard({
+  title,
+  hint,
+  inputs,
+  filled,
+  submitLabel,
+  onSubmit,
+}: {
+  title?: string;
+  hint?: string;
+  inputs: InputFieldSpec[];
+  filled?: InputFieldFilled[];
+  submitLabel?: string;
+  onSubmit: (rawValues: Record<string, string>) => void;
+}) {
+  const [values, setValues] = useState<Record<string, string>>({});
+  const submitted = Boolean(filled && filled.length);
+
+  /* Submitted view — compact summary chips. PII shows masked. */
+  if (submitted) {
+    return (
+      <motion.div
+        className={styles.inputFormCardDone}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className={styles.inputFormDoneHeader}>
+          <span className={styles.inputFormDoneCheck}>✓</span>
+          <span>Got it — starting the agent</span>
+        </div>
+        <div className={styles.inputFormDoneList}>
+          {filled!.map((f) => (
+            <span key={f.field} className={styles.inputFormDoneChip}>
+              <span className={styles.inputFormDoneChipLabel}>{f.field}</span>
+              <span className={styles.inputFormDoneChipValue}>{f.display}</span>
+              {f.token && <span className={styles.inputFormDoneChipLock}>🔒</span>}
+            </span>
+          ))}
+        </div>
+      </motion.div>
+    );
+  }
+
+  const allFilled = inputs.every((spec) => (values[spec.field] || '').trim().length > 0);
+  const patternOk = inputs.every((spec) => {
+    const v = (values[spec.field] || '').trim();
+    if (!v || !spec.pattern) return true;
+    try { return new RegExp(spec.pattern).test(v); } catch { return true; }
+  });
+  const canSubmit = allFilled && patternOk;
+
+  return (
+    <motion.div
+      className={styles.inputFormCard}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.32 }}
+    >
+      <div className={styles.inputFormHeader}>
+        <div className={styles.inputFormIcon}>📝</div>
+        <div className={styles.inputFormHeaderText}>
+          <div className={styles.inputFormTitle}>{title || 'A few details before we start'}</div>
+          {hint && <div className={styles.inputFormHint}>{hint}</div>}
+        </div>
+      </div>
+
+      <form
+        className={styles.inputFormBody}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (canSubmit) onSubmit(values);
+        }}
+      >
+        {inputs.map((spec, i) => (
+          <motion.div
+            key={spec.field}
+            className={styles.inputFormRow}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.08 + i * 0.06 }}
+          >
+            <label className={styles.inputFormLabel} htmlFor={`agent-input-${spec.field}`}>
+              {spec.label}
+              {spec.pii && (
+                <span className={styles.inputFormPiiBadge} title="Encrypted locally before any upload">
+                  🔒 private
+                </span>
+              )}
+            </label>
+            <input
+              id={`agent-input-${spec.field}`}
+              className={styles.inputFormInput}
+              type="text"
+              value={values[spec.field] || ''}
+              onChange={(e) => setValues((v) => ({ ...v, [spec.field]: e.target.value }))}
+              placeholder={spec.placeholder || ''}
+              autoComplete="off"
+            />
+            {spec.hint && <div className={styles.inputFormFieldHint}>{spec.hint}</div>}
+          </motion.div>
+        ))}
+
+        <button
+          type="submit"
+          className={styles.inputFormSubmit}
+          disabled={!canSubmit}
+        >
+          {submitLabel || 'Start the agent →'}
+        </button>
+      </form>
+    </motion.div>
+  );
+}
+
 /* ──── Agent — Started ──── */
 function AgentStartedCard({ title }: { title?: string }) {
   return (
@@ -311,10 +433,18 @@ interface ChatMessageProps {
   onAgentAnswer?: (msgId: string, answer: string) => void;
   onPrepConfirm?: (msgId: string) => void;
   onPrepCancel?: (msgId: string) => void;
+  onInputFormSubmit?: (msgId: string, rawValues: Record<string, string>) => void;
 }
 
 /* ──── Main Component ──── */
-export default function ChatMessage({ msg, onAction, onAgentAnswer, onPrepConfirm, onPrepCancel }: ChatMessageProps) {
+export default function ChatMessage({
+  msg,
+  onAction,
+  onAgentAnswer,
+  onPrepConfirm,
+  onPrepCancel,
+  onInputFormSubmit,
+}: ChatMessageProps) {
   if (msg.role === 'user') {
     return (
       <motion.div
@@ -346,6 +476,18 @@ export default function ChatMessage({ msg, onAction, onAgentAnswer, onPrepConfir
           cancelled={Boolean(msg.agent.cancelled)}
           onConfirm={() => onPrepConfirm?.(msg.id)}
           onCancel={() => onPrepCancel?.(msg.id)}
+        />
+      );
+    }
+    if (msg.agent.kind === 'input_form') {
+      return (
+        <AgentInputFormCard
+          title={msg.agent.title}
+          hint={msg.agent.prompt}
+          inputs={msg.agent.inputs || []}
+          filled={msg.agent.filled}
+          submitLabel={msg.agent.submitLabel}
+          onSubmit={(values) => onInputFormSubmit?.(msg.id, values)}
         />
       );
     }

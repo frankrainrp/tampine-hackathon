@@ -18,6 +18,7 @@ import { runActionSequence } from '../agent/executor';
 import { CDC_VOUCHER_DEMO } from '../agent/demoScripts';
 import { speak, stopSpeech, speechSupported as isSpeechSynthSupported } from '../agent/voice';
 import { maskValue, resetPiiStore } from '../agent/piiMask';
+import type { InputFieldFilled } from '../store/useAppStore';
 import styles from './WorkspacePage.module.css';
 
 let msgCounter = 0;
@@ -137,8 +138,10 @@ export default function WorkspacePage() {
     pendingAskRef.current = null;
   }, [updateMessageAgent]);
 
-  /* ── Run the actual agent demo (after prep confirmation) ── */
-  const runAgentDemo = useCallback(async () => {
+  /* ── Run the actual agent demo (after the user submits the input form) ──
+   * `tokens` is the dict the executor uses for fill.valueFrom — typically the
+   * PII-masked tokens, never the raw NRIC. */
+  const runAgentDemo = useCallback(async (tokens: Record<string, string>) => {
     // push "agent started" message
     addMessage({
       id: nextId(),
@@ -153,32 +156,21 @@ export default function WorkspacePage() {
     setAgentRunning(true);
     setNarration('Initializing agent...');
 
-    // 4. wait for slide-in
+    // wait for slide-in
     await new Promise((r) => setTimeout(r, 750));
     if (!stageRef.current) {
       setAgentRunning(false);
       return;
     }
 
-    // 5. run sequence
-    const result = await runActionSequence(CDC_VOUCHER_DEMO, stageRef.current, {
+    // run sequence (no ask_user — all inputs already collected)
+    const result = await runActionSequence(CDC_VOUCHER_DEMO.actions, stageRef.current, {
+      inputs: tokens,
       setHighlight: (target, label) => setHighlight({ target, label }),
       setNarration: (msg) => {
         setNarration(msg);
         speak(msg, { muted: useAppStore.getState().speechMuted });
       },
-      askUser: (field, prompt) =>
-        new Promise<string>((resolve) => {
-          const msgId = nextId();
-          addMessage({
-            id: msgId,
-            role: 'assistant',
-            agent: { kind: 'ask_user', field, prompt },
-            timestamp: Date.now(),
-          });
-          pendingAskRef.current = { msgId, field, resolve };
-          speak(prompt, { muted: useAppStore.getState().speechMuted, interrupt: true });
-        }),
       askConfirm: (title, subtitle, fields) =>
         new Promise<boolean>((resolve) => {
           setConfirmModal({
@@ -190,8 +182,6 @@ export default function WorkspacePage() {
               resolve(ok);
             },
           });
-          // Read out the title + total/headline (first highlighted field) so an
-          // elderly user without good eyesight still hears what they're approving.
           const headline = fields.find((f) => f.highlight) ?? fields[0];
           const speech =
             `${title}. ${subtitle ? subtitle + '. ' : ''}` +
@@ -278,15 +268,62 @@ export default function WorkspacePage() {
     );
   }, [addMessage]);
 
+  /* ── Prep list confirmed → push the input-collection form ──
+   * The form gathers EVERY field the agent needs in one go, so the auto-pilot
+   * sequence runs uninterrupted. */
   const handlePrepConfirm = useCallback((msgId: string) => {
     updateMessageAgent(msgId, { confirmed: true });
-    /* slight delay so the "Ready..." line is visible before panel slides in */
-    setTimeout(() => runAgentDemo(), 600);
-  }, [updateMessageAgent, runAgentDemo]);
+    setTimeout(() => {
+      addMessage({
+        id: nextId(),
+        role: 'assistant',
+        agent: {
+          kind: 'input_form',
+          title: CDC_VOUCHER_DEMO.inputsTitle,
+          prompt: CDC_VOUCHER_DEMO.inputsHint,
+          inputs: CDC_VOUCHER_DEMO.inputs,
+        },
+        timestamp: Date.now(),
+      });
+      speak(
+        `${CDC_VOUCHER_DEMO.inputsTitle}. ${CDC_VOUCHER_DEMO.inputsHint}`,
+        { muted: useAppStore.getState().speechMuted, interrupt: true },
+      );
+    }, 450);
+  }, [updateMessageAgent, addMessage]);
 
   const handlePrepCancel = useCallback((msgId: string) => {
     updateMessageAgent(msgId, { cancelled: true });
   }, [updateMessageAgent]);
+
+  /* ── User submitted the input form → mask PII fields, then kick off agent ── */
+  const handleInputFormSubmit = useCallback(
+    (msgId: string, rawValues: Record<string, string>) => {
+      // Build filled[] (for chat display) and tokens dict (for the executor)
+      const filled: InputFieldFilled[] = [];
+      const tokens: Record<string, string> = {};
+
+      for (const spec of CDC_VOUCHER_DEMO.inputs) {
+        const raw = (rawValues[spec.field] || '').trim();
+        if (!raw) continue;
+        if (spec.pii) {
+          const masked = maskValue(spec.field, raw);
+          filled.push({ field: spec.field, display: masked.display, token: masked.token });
+          tokens[spec.field] = masked.token;
+        } else {
+          filled.push({ field: spec.field, display: raw, raw });
+          tokens[spec.field] = raw;
+        }
+      }
+
+      // Lock the card into its "Got it" state
+      updateMessageAgent(msgId, { filled, confirmed: true });
+
+      // Slight delay so the user sees the confirmation flash before the panel slides in
+      setTimeout(() => runAgentDemo(tokens), 500);
+    },
+    [updateMessageAgent, runAgentDemo],
+  );
 
   /* ── Send message (with agent trigger detection) ── */
   const handleSend = async (overrideText?: string, forceAgent?: boolean) => {
@@ -499,6 +536,7 @@ export default function WorkspacePage() {
                   onAgentAnswer={handleAgentAnswer}
                   onPrepConfirm={handlePrepConfirm}
                   onPrepCancel={handlePrepCancel}
+                  onInputFormSubmit={handleInputFormSubmit}
                 />
               ))}
               <AnimatePresence>{isTyping && <TypingIndicator />}</AnimatePresence>

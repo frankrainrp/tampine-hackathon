@@ -44,16 +44,45 @@ export interface PrepItem {
   desc: string;
 }
 
+export interface InputFieldSpec {
+  /** Key the executor reads via `fill.valueFrom` */
+  field: string;
+  /** Short label shown above the input (e.g. "NRIC") */
+  label: string;
+  /** Helper text explaining why we need this */
+  hint?: string;
+  /** Input placeholder (e.g. "S1234567A") */
+  placeholder?: string;
+  /** If true, value is PII-masked locally before the cloud / form ever sees it */
+  pii?: boolean;
+  /** Optional regex check before allowing submission */
+  pattern?: string;
+}
+
+/** One filled-in field, as stored on the message after the user submits the form */
+export interface InputFieldFilled {
+  field: string;
+  display: string;       // what to show in chat (masked form for PII)
+  token?: string;        // the semantic token if PII-masked, else absent
+  raw?: string;          // raw value, only kept for non-PII fields
+}
+
 export interface AgentMessageData {
-  kind: 'prep_list' | 'started' | 'ask_user' | 'done';
+  kind: 'prep_list' | 'input_form' | 'started' | 'ask_user' | 'done';
   title?: string;
   /** For prep_list: items the user must have on hand */
   items?: PrepItem[];
-  /** For prep_list: tracks whether user has confirmed */
+  /** For prep_list / input_form: tracks whether user has confirmed */
   confirmed?: boolean;
   /** For prep_list: tracks cancellation (user clicked "let me check first") */
   cancelled?: boolean;
-  /** For ask_user: */
+  /** For input_form: the spec the user fills in */
+  inputs?: InputFieldSpec[];
+  /** For input_form: filled values after submission */
+  filled?: InputFieldFilled[];
+  /** Optional submit button label override */
+  submitLabel?: string;
+  /** For ask_user (legacy / fallback): */
   field?: string;
   prompt?: string;
   /** For ask_user: filled in after user submits the answer (the masked display form) */

@@ -13,7 +13,15 @@ export interface ConfirmActionField {
 export type AgentAction =
   | { type: 'navigate'; site: MockSiteId; narration: string }
   | { type: 'click'; target: string; narration: string; label?: string }
-  | { type: 'fill'; target: string; value: string; narration: string; label?: string }
+  /** Fill with a literal value OR pull from the user's pre-collected inputs (valueFrom). */
+  | {
+      type: 'fill';
+      target: string;
+      narration: string;
+      value?: string;
+      valueFrom?: string;
+      label?: string;
+    }
   | { type: 'ask_user'; field: string; prompt: string; target: string; narration: string }
   | {
       type: 'confirm';
@@ -68,7 +76,11 @@ async function typeIntoInput(input: HTMLInputElement, value: string, perChar = 5
 export interface ExecutorCallbacks {
   setHighlight: (target: string | null, label?: string) => void;
   setNarration: (msg: string) => void;
-  askUser: (field: string, prompt: string) => Promise<string>;
+  /** Pre-collected inputs keyed by field name (e.g. "NRIC" → "[NRIC_001]" token). */
+  inputs?: Record<string, string>;
+  /** Optional legacy ask-user path (kept for backwards compatibility — new
+   *  CDC flow collects all inputs up-front and shouldn't trigger this). */
+  askUser?: (field: string, prompt: string) => Promise<string>;
   askConfirm: (
     title: string,
     subtitle: string | undefined,
@@ -104,10 +116,20 @@ export async function executeAction(
     case 'fill': {
       cb.setHighlight(action.target, action.label || 'Typing');
       await delay(750);
+
+      // Resolve value: explicit literal first, then look up the user-provided
+      // inputs dictionary by `valueFrom`. If neither is available, skip silently.
+      const resolved =
+        action.value !== undefined
+          ? action.value
+          : action.valueFrom
+            ? cb.inputs?.[action.valueFrom]
+            : undefined;
+
       const input = findEl<HTMLInputElement>(container, action.target);
-      if (input) {
+      if (input && resolved !== undefined) {
         input.focus();
-        await typeIntoInput(input, action.value);
+        await typeIntoInput(input, resolved);
       }
       await delay(450);
       cb.setHighlight(null);
@@ -116,6 +138,9 @@ export async function executeAction(
     }
 
     case 'ask_user': {
+      // Legacy path — new flow collects everything up-front. If somehow
+      // triggered without an askUser handler wired up, skip cleanly.
+      if (!cb.askUser) return {};
       cb.setHighlight(action.target, 'Waiting for you');
       const userValue = await cb.askUser(action.field, action.prompt);
       const input = findEl<HTMLInputElement>(container, action.target);
