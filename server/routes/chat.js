@@ -12,49 +12,42 @@ function getApiConfig() {
 }
 
 // ─── DeepSeek / OpenAI 兼容的 System Prompt ──────────────────────
-const SYSTEM_PROMPT = `You are an AI assistant for a Smart Public Service Terminal.
+const SYSTEM_PROMPT_BASE = `You are an experienced Singapore public-service caseworker. For every query, deliver ONE concrete actionable plan the user can execute today — never offer options, alternatives, or hedging language.
 
-CRITICAL: You MUST always respond with a valid JSON object only. No markdown fences, no extra text.
-
-Choose the response format based on the user's request:
-
-FORMAT 1 — Standard 5W1H summary (for most queries):
+Output ONLY this JSON, no markdown:
 {
-  "type": "summary_list",
-  "reply": "A short, friendly reply to the user in English.",
-  "bullet_points": [
-    { "icon": "who|what|when|where|why|how", "label": "Field Name", "value": "Field Value" }
+  "reply": "<1-2 sentence direct answer, no fluff>",
+  "fields": [
+    {"type": "<location|datetime|documents|contact|cost|eligibility|person|step|note>", "label": "<short>", "value": "<concrete>"}
   ],
-  "actions": [
-    { "label": "Button Label", "action_id": "snake_case_id" }
-  ]
+  "actions": [{"label": "<button>", "prompt": "<follow-up message>"}]
 }
 
-FORMAT 2 — Composite with special cards (for multi-agency or progress tracking):
-{
-  "type": "composite",
-  "reply": "A short, friendly reply.",
-  "bullet_points": [ ... ],
-  "special_components": [
-    {
-      "component_name": "RouteCard",
-      "data": {
-        "routes": [
-          { "step": 1, "title": "Agency Name", "desc": "Task description" }
-        ]
-      }
-    }
-  ]
+Be proactive and decisive:
+- Sequence "step" fields in execution order. Each step's label includes the absolute time, e.g. "Step 1 — Tue 26 May, 9:30 AM". Schedule each step inside the responsible office's actual opening hours; if today is past closing, push to the next business day.
+- Always include a "datetime" field with the relevant office's service hours (Singapore govt counters are typically Mon-Fri 8:30am-5pm, Sat 8:30am-1pm; polyclinics 8am-4:30pm Mon-Fri, 8am-12:30pm Sat; ServiceSG centres extend to 6pm weekdays).
+- "location" must be a complete Singapore address with postal code.
+- "contact" must be a real +65 hotline for the specific agency.
+- "documents" lists exact items (NRIC, IRAS Notice of Assessment, marriage certificate, etc), not vague phrases.
+- "person" names the specific officer role or counter that handles this case (e.g. "MOM Work Pass case officer", "HDB Sales Counter, Level 2"), not "any staff".
+- "cost" states the exact fee and payment mode (NETS / cashier order / PayNow).
+- Forbidden phrases: "you could", "options include", "maybe", "depending on", "various". Decide for the user.
+
+Rules:
+- 4-7 fields, all directly needed to execute the plan.
+- "actions" max 3; each "prompt" is the literal next question the user would ask.
+- Reply in the user's language.
+- JSON only.`;
+
+function getSystemPrompt() {
+  const now = new Date();
+  const sgtDate = new Intl.DateTimeFormat('en-SG', {
+    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+    timeZone: 'Asia/Singapore',
+  }).format(now);
+  return `Current Singapore time: ${sgtDate}.\n\n${SYSTEM_PROMPT_BASE}`;
 }
-
-Special component options:
-- "RouteCard": for multi-step agency routing. data requires "routes" array.
-- "ProgressCard": for tracking application status. data requires "progress" (0-100) and "status" string.
-- "LoopCard": for inter-agency coordination. data requires "agencies" array with "name" and "status".
-
-Icons for bullet_points MUST be one of: "who", "what", "when", "where", "why", "how"
-
-Always extract: Who is involved, What is the task, When is the deadline, Where to go, Why (conditions), How (steps/documents needed).`;
 
 const router = Router();
 
@@ -75,12 +68,12 @@ async function callLLM(messages) {
     body: JSON.stringify({
       model,
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: getSystemPrompt() },
         ...messages,
       ],
       response_format: { type: 'json_object' },
       temperature: 0.3,
-      max_tokens: 1024,
+      max_tokens: 900,
     }),
   });
 
@@ -95,7 +88,7 @@ async function callLLM(messages) {
 
   // 解析并验证 JSON
   const parsed = JSON.parse(raw);
-  if (!parsed.type || !parsed.reply) {
+  if (!parsed.reply || !Array.isArray(parsed.fields)) {
     throw new Error('Invalid AI response structure');
   }
   return parsed;
@@ -127,11 +120,11 @@ router.post('/', async (req, res) => {
     attachments ? JSON.stringify(attachments) : null,
   );
 
-  // 取最近 10 条对话历史作为上下文
+  // 取最近 6 条对话历史作为上下文
   const history = db.prepare(`
     SELECT role, content FROM messages
     WHERE session_id = ? AND role IN ('user', 'assistant') AND content IS NOT NULL
-    ORDER BY created_at DESC LIMIT 10
+    ORDER BY created_at DESC LIMIT 6
   `).all(session_id).reverse();
 
   try {
@@ -175,11 +168,10 @@ router.post('/', async (req, res) => {
 
     // API 调用失败时的降级 Mock 响应
     const fallback = {
-      type: 'summary_list',
       reply: `⚠️ AI service error: ${err.message}`,
-      bullet_points: [
-        { icon: 'what', label: 'Your Query', value: content },
-        { icon: 'how', label: 'Next Step', value: 'Check API_KEY in server/.env and ensure the AI provider is reachable.' },
+      fields: [
+        { type: 'note', label: 'Your Query', value: content },
+        { type: 'step', label: 'Next Step', value: 'Check API_KEY in server/.env and ensure the AI provider is reachable.' },
       ],
     };
 

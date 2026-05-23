@@ -6,74 +6,60 @@ import type { AIResponse } from '../store/useAppStore';
  */
 export const MOCK_RESPONSES: Record<string, AIResponse> = {
   default: {
-    type: 'summary_list',
     reply: 'Here is the information you requested. I have organized the key details below:',
-    bullet_points: [
-      { icon: 'who', label: 'Assigned Officer', value: 'Ms Farah Lim (Social Services)' },
-      { icon: 'what', label: 'Current Task', value: 'Fund Verification & Interview' },
-      { icon: 'when', label: 'Appointment', value: 'This Tuesday, 10:30 AM' },
-      { icon: 'where', label: 'Location', value: 'Outram Community Hub, Level 3' },
-      { icon: 'how', label: 'Required Docs', value: 'NRIC, Retrenchment Letter' },
+    fields: [
+      { type: 'person', label: 'Assigned Officer', value: 'Ms Farah Lim (Social Services)' },
+      { type: 'datetime', label: 'Appointment', value: 'This Tuesday, 10:30 AM' },
+      { type: 'location', label: 'Location', value: 'Outram Community Hub, Level 3, Singapore' },
+      { type: 'documents', label: 'Required Documents', value: 'NRIC, Retrenchment Letter' },
+      { type: 'contact', label: 'Office', value: '+65 6325 9220' },
     ],
     actions: [
-      { label: 'Confirm Booking', action_id: 'confirm_booking' },
+      { label: 'Confirm Booking', prompt: 'Please confirm this booking and tell me what to do next.' },
     ],
   },
 
   housing: {
-    type: 'summary_list',
     reply: 'Your HDB flat application status has been updated:',
-    bullet_points: [
-      { icon: 'who', label: 'Applicant', value: 'You (Primary) + 1 Co-Applicant' },
-      { icon: 'what', label: 'Application', value: 'BTO Flat — 4-Room, Tengah' },
-      { icon: 'when', label: 'Ballot Date', value: '15 June 2026, 2:00 PM' },
-      { icon: 'where', label: 'Selection Venue', value: 'HDB Hub, Toa Payoh' },
-      { icon: 'why', label: 'Eligibility', value: 'First-timer priority — confirmed' },
-      { icon: 'how', label: 'Next Step', value: 'Prepare Option Fee ($2,000 cashier order)' },
+    fields: [
+      { type: 'note', label: 'Application', value: 'BTO Flat — 4-Room, Tengah' },
+      { type: 'datetime', label: 'Ballot Date', value: '15 June 2026, 2:00 PM' },
+      { type: 'location', label: 'Selection Venue', value: 'HDB Hub, 480 Lorong 6 Toa Payoh, Singapore 310480' },
+      { type: 'eligibility', label: 'Status', value: 'First-timer priority — confirmed' },
+      { type: 'cost', label: 'Option Fee', value: 'S$2,000 (cashier order)' },
+      { type: 'step', label: 'Next Step', value: 'Prepare cashier order and required documents before the ballot date.' },
     ],
     actions: [
-      { label: 'View Floor Plans', action_id: 'view_plans' },
-      { label: 'Update Co-Applicant', action_id: 'update_coapplicant' },
+      { label: 'View Floor Plans', prompt: 'Please show me the available floor plans for 4-room Tengah BTO.' },
+      { label: 'Update Co-Applicant', prompt: 'I need to update my co-applicant information.' },
     ],
   },
 
-  complex: {
-    type: 'composite',
-    reply: 'This is a complex cross-agency medical referral. I have extracted the key information and mapped the route for you:',
-    bullet_points: [
-      { icon: 'what', label: 'Core Issue', value: 'Cross-agency neuro-rehabilitation coordination required' },
-      { icon: 'who', label: 'Lead Coordinator', value: 'Dr. Chen Wei (NUH Neurology)' },
-      { icon: 'when', label: 'First Appointment', value: 'Next Monday, 9:00 AM' },
+  medical: {
+    reply: 'I have routed this cross-agency medical referral for you. Key info below:',
+    fields: [
+      { type: 'person', label: 'Lead Coordinator', value: 'Dr. Chen Wei (NUH Neurology)' },
+      { type: 'datetime', label: 'First Appointment', value: 'Next Monday, 9:00 AM' },
+      { type: 'location', label: 'Hospital', value: 'National University Hospital, 5 Lower Kent Ridge Rd, Singapore 119074' },
+      { type: 'documents', label: 'Bring Along', value: 'NRIC, referral letter from GP, prior MRI reports' },
+      { type: 'step', label: 'Step 1', value: 'NUH Neurology — complete specialist assessment.' },
+      { type: 'step', label: 'Step 2', value: 'AIC Care Coordinator — financial subsidy review.' },
     ],
-    special_components: [
-      {
-        component_name: 'RouteCard',
-        data: {
-          routes: [
-            { step: 1, title: 'NUH Neurology', desc: 'Complete specialist assessment' },
-            { step: 2, title: 'AIC Care Coordinator', desc: 'Financial subsidy review' },
-            { step: 3, title: 'Community Social Work', desc: 'Post-care support & follow-up' },
-          ],
-        },
-      },
+    actions: [
+      { label: 'Check Subsidy', prompt: 'Please help me check what subsidies I qualify for.' },
     ],
   },
 
   progress: {
-    type: 'composite',
-    reply: 'Your current application progress is shown below:',
-    bullet_points: [
-      { icon: 'what', label: 'Application', value: 'Work Permit Renewal' },
-      { icon: 'when', label: 'Estimated Completion', value: '3-5 working days' },
+    reply: 'Your work permit renewal is currently under review by MOM:',
+    fields: [
+      { type: 'note', label: 'Application', value: 'Work Permit Renewal — 65% complete' },
+      { type: 'datetime', label: 'Estimated Completion', value: '3-5 working days' },
+      { type: 'contact', label: 'MOM Hotline', value: '+65 6438 5122' },
+      { type: 'step', label: 'Next Step', value: 'Wait for MOM officer to review. You will be notified via SMS.' },
     ],
-    special_components: [
-      {
-        component_name: 'ProgressCard',
-        data: {
-          progress: 65,
-          status: 'Under Review by MOM',
-        },
-      },
+    actions: [
+      { label: 'Track Progress', prompt: 'Please give me the latest progress update on my permit.' },
     ],
   },
 };
@@ -86,11 +72,10 @@ export function getMockResponse(userInput: string): AIResponse {
     return MOCK_RESPONSES.housing;
   }
   if (lower.includes('medical') || lower.includes('hospital') || lower.includes('referral') || lower.includes('neuro')) {
-    return MOCK_RESPONSES.complex;
+    return MOCK_RESPONSES.medical;
   }
   if (lower.includes('progress') || lower.includes('status') || lower.includes('permit') || lower.includes('renewal')) {
     return MOCK_RESPONSES.progress;
   }
-  // cycle through for generic
   return MOCK_RESPONSES[responseKeys[Math.floor(Math.random() * responseKeys.length)]];
 }

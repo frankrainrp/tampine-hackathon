@@ -182,9 +182,8 @@ export default function WorkspacePage() {
         id: nextId(),
         role: 'assistant',
         aiResponse: {
-          type: 'summary_list',
           reply: `❌ Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
-          bullet_points: [{ icon: 'how', label: 'Tip', value: 'Check if the backend server is running on port 3001.' }],
+          fields: [{ type: 'step', label: 'Tip', value: 'Check if the backend server is running on port 3001.' }],
         },
         timestamp: Date.now(),
       });

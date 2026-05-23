@@ -10,39 +10,32 @@ export interface CurrentUser {
   avatar: string;
 }
 
-export interface BulletPoint {
-  icon: 'who' | 'what' | 'when' | 'where' | 'why' | 'how';
+export type FieldType =
+  | 'location'
+  | 'datetime'
+  | 'documents'
+  | 'contact'
+  | 'cost'
+  | 'eligibility'
+  | 'person'
+  | 'step'
+  | 'note';
+
+export interface FieldEntry {
+  type: FieldType;
   label: string;
   value: string;
 }
 
 export interface ActionButton {
   label: string;
-  action_id: string;
-}
-
-export interface RouteStep {
-  step: number;
-  title: string;
-  desc: string;
-}
-
-export interface SpecialComponent {
-  component_name: 'RouteCard' | 'ProgressCard' | 'LoopCard';
-  data: {
-    routes?: RouteStep[];
-    progress?: number;
-    status?: string;
-    agencies?: { name: string; status: string }[];
-  };
+  prompt: string;
 }
 
 export interface AIResponse {
-  type: 'summary_list' | 'composite';
   reply: string;
-  bullet_points: BulletPoint[];
+  fields: FieldEntry[];
   actions?: ActionButton[];
-  special_components?: SpecialComponent[];
 }
 
 export interface ChatMessage {

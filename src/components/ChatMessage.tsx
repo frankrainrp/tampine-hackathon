@@ -1,69 +1,83 @@
 import { motion } from 'framer-motion';
-import { lazy, Suspense } from 'react';
-import type { ChatMessage as ChatMessageType, BulletPoint } from '../store/useAppStore';
+import type { ChatMessage as ChatMessageType, FieldEntry, FieldType } from '../store/useAppStore';
 import styles from './ChatMessage.module.css';
 
-/* ──── 5W1H icon map ──── */
-const ICON_MAP: Record<BulletPoint['icon'], string> = {
-  who: '👤',
-  what: '📋',
-  when: '🕒',
-  where: '📍',
-  why: '❓',
-  how: '🔧',
+/* ──── Field type → icon ──── */
+const ICON_MAP: Record<FieldType, string> = {
+  location: '📍',
+  datetime: '🕒',
+  documents: '📄',
+  contact: '📞',
+  cost: '💲',
+  eligibility: '✅',
+  person: '👤',
+  step: '➡️',
+  note: '📝',
 };
 
-/* ──── Lazy-loaded special components ──── */
-const RouteCard = lazy(() => import('./Specialized/RouteCard'));
-const ProgressCard = lazy(() => import('./Specialized/ProgressCard'));
-
-const SPECIAL_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
-  RouteCard,
-  ProgressCard,
-};
-
-/* ──── Action ID → Prompt mapping ──── */
-function actionIdToPrompt(actionId: string, label: string): string {
-  const promptMap: Record<string, string> = {
-    start_inquiry: 'I would like to start an inquiry. Please tell me the detailed service process and required documents.',
-    check_status: 'Please help me check the current application status and progress.',
-    start_service: 'I want to start this service. Please guide me through the detailed steps.',
-    get_details: 'Please provide more detailed information and specific instructions.',
-    book_appointment: 'I would like to book an appointment. Please show me available time slots.',
-    submit_application: 'I want to submit an application. What documents do I need to prepare?',
-    view_requirements: 'Please list all the requirements and conditions for this service.',
-    contact_support: 'I need human support. Please provide contact information.',
-    download_form: 'Please provide the download links for required forms and documents.',
-    track_progress: 'Please help me track the processing progress.',
-    get_directions: 'Please tell me the address and directions to the service location.',
-    learn_more: 'I would like to learn more about this topic.',
-    apply_now: 'I want to apply now. Please guide me through the application process.',
-    view_fees: 'Please tell me the fees and payment methods.',
-    check_eligibility: 'Please help me check if I meet the eligibility requirements.',
-  };
-
-  return promptMap[actionId] || `${label}: Please provide more details and guidance.`;
+/* ──── Build interactive href for clickable field types ──── */
+function getFieldHref(type: FieldType, value: string): string | null {
+  if (type === 'location') {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`;
+  }
+  if (type === 'contact') {
+    // Strip everything except digits, +, and extension marker
+    const tel = value.replace(/[^\d+;,]/g, '');
+    if (tel.length >= 3) return `tel:${tel}`;
+  }
+  return null;
 }
 
-/* ──── DynamicBulletList ──── */
-function DynamicBulletList({ points }: { points: BulletPoint[] }) {
+/* ──── DynamicFieldList ──── */
+function DynamicFieldList({ fields }: { fields: FieldEntry[] }) {
   return (
     <div className={styles.bulletList}>
-      {points.map((bp, i) => (
-        <motion.div
-          key={i}
-          className={styles.bulletItem}
-          initial={{ opacity: 0, x: -12 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.35, delay: i * 0.07 }}
-        >
-          <div className={styles.bulletIcon}>{ICON_MAP[bp.icon] || '📌'}</div>
-          <div className={styles.bulletText}>
-            <span className={styles.bulletLabel}>{bp.label}</span>
-            <span className={styles.bulletValue}>{bp.value}</span>
-          </div>
-        </motion.div>
-      ))}
+      {fields.map((f, i) => {
+        const href = getFieldHref(f.type, f.value);
+        const content = (
+          <>
+            <div className={styles.bulletIcon}>{ICON_MAP[f.type] || '📌'}</div>
+            <div className={styles.bulletText}>
+              <span className={styles.bulletLabel}>{f.label}</span>
+              <span className={`${styles.bulletValue} ${href ? styles.bulletValueLink : ''}`}>
+                {f.value}
+                {href && <span className={styles.bulletLinkHint}>{f.type === 'location' ? ' ↗' : ''}</span>}
+              </span>
+            </div>
+          </>
+        );
+
+        const MotionWrap = motion.div;
+        const animProps = {
+          initial: { opacity: 0, x: -12 },
+          animate: { opacity: 1, x: 0 },
+          transition: { duration: 0.35, delay: i * 0.07 },
+        };
+
+        if (href) {
+          return (
+            <MotionWrap
+              key={i}
+              className={`${styles.bulletItem} ${styles.bulletItemClickable}`}
+              {...animProps}
+              onClick={() => window.open(href, '_blank', 'noopener,noreferrer')}
+              role="link"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') window.open(href, '_blank', 'noopener,noreferrer');
+              }}
+            >
+              {content}
+            </MotionWrap>
+          );
+        }
+
+        return (
+          <MotionWrap key={i} className={styles.bulletItem} {...animProps}>
+            {content}
+          </MotionWrap>
+        );
+      })}
     </div>
   );
 }
@@ -123,36 +137,19 @@ export default function ChatMessage({ msg, onAction }: ChatMessageProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
     >
-      {/* Reply text */}
       <div className={styles.aiReply}>{res.reply}</div>
 
-      {/* Bullet points */}
-      {res.bullet_points && res.bullet_points.length > 0 && (
-        <DynamicBulletList points={res.bullet_points} />
+      {res.fields && res.fields.length > 0 && (
+        <DynamicFieldList fields={res.fields} />
       )}
 
-      {/* Special components — lazy loaded */}
-      {res.special_components && res.special_components.length > 0 && (
-        <Suspense fallback={null}>
-          {res.special_components.map((sc, i) => {
-            const Comp = SPECIAL_MAP[sc.component_name];
-            if (!Comp) return null;
-            return <Comp key={i} data={sc.data} />;
-          })}
-        </Suspense>
-      )}
-
-      {/* Actions — now functional */}
       {res.actions && res.actions.length > 0 && (
         <div className={styles.actions}>
-          {res.actions.map((a) => (
+          {res.actions.map((a, i) => (
             <button
-              key={a.action_id}
+              key={i}
               className={styles.actionBtn}
-              onClick={() => {
-                const prompt = actionIdToPrompt(a.action_id, a.label);
-                if (onAction) onAction(prompt);
-              }}
+              onClick={() => onAction?.(a.prompt)}
             >
               {a.label}
             </button>
@@ -162,4 +159,3 @@ export default function ChatMessage({ msg, onAction }: ChatMessageProps) {
     </motion.div>
   );
 }
-
