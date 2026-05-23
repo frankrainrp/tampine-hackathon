@@ -38,11 +38,24 @@ export interface AIResponse {
   actions?: ActionButton[];
 }
 
+export interface AgentMessageData {
+  kind: 'started' | 'ask_user' | 'done';
+  title?: string;
+  field?: string;
+  prompt?: string;
+  /** For ask_user: filled in after user submits the answer */
+  answer?: string;
+  /** For done: */
+  summary?: string;
+  caseId?: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content?: string;
   aiResponse?: AIResponse;
+  agent?: AgentMessageData;
   timestamp: number;
   attachments?: { name: string; type: string; url: string }[];
 }

@@ -373,13 +373,17 @@
   display: flex;
   flex-direction: column;
   padding-top: 56px; /* below top bar */
+  /* shrink main when agent panel is open */
+  padding-right: var(--panel-width, 0px);
+  transition: padding-right 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
 }
 
 .chatArea {
   flex: 1;
   overflow-y: auto;
   padding: 2rem 1.5rem;
-  padding-bottom: 140px;
+  padding-bottom: 160px;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -457,18 +461,33 @@
   transform: translateY(-1px);
 }
 
+.quickBtnPrimary {
+  background: linear-gradient(135deg, #4a9eff 0%, #7c5cff 100%);
+  border-color: transparent;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(74, 158, 255, 0.35);
+}
+
+.quickBtnPrimary:hover {
+  background: linear-gradient(135deg, #3b8eee 0%, #6b4cff 100%);
+  box-shadow: 0 6px 18px rgba(74, 158, 255, 0.45);
+}
+
 /* ──── Input Bar (bottom, glassmorphism) ──── */
 .inputBarWrap {
   position: fixed;
   bottom: 0;
   left: 0;
-  right: 0;
+  /* right edge shrinks when agent panel is open */
+  right: var(--panel-width, 0px);
   z-index: 850;
   display: flex;
   justify-content: center;
   padding: 1rem 1.5rem 1.5rem;
   background: linear-gradient(to top, var(--grid-bg) 60%, transparent);
   pointer-events: none;
+  transition: right 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .inputBar {
@@ -783,5 +802,9 @@
   }
   .inputBarWrap {
     padding: 0.75rem 1rem 1rem;
+    right: 0; /* on mobile, agent panel takes full width so chat is hidden anyway */
+  }
+  .main {
+    padding-right: 0;
   }
 }

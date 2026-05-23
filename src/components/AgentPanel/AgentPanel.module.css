@@ -1,0 +1,184 @@
+/* ─── Right-side Agent Panel ─── */
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  /* width is set inline via React (resizable) */
+  height: 100vh;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #1a1d24 0%, #0f1115 100%);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.25);
+  padding: 0.85rem 1rem 1rem 1.15rem;
+  box-sizing: border-box;
+}
+
+/* ─── Drag handle (left edge) ─── */
+.dragHandle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background 0.15s;
+  z-index: 60;
+}
+
+.dragHandle:hover,
+.dragHandle:active {
+  background: rgba(109, 180, 255, 0.18);
+}
+
+.dragHandleGrip {
+  width: 3px;
+  height: 42px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  transition: background 0.15s, height 0.15s;
+}
+
+.dragHandle:hover .dragHandleGrip,
+.dragHandle:active .dragHandleGrip {
+  background: #6db4ff;
+  height: 64px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.25rem 0.4rem 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.32rem 0.7rem;
+  background: rgba(74, 158, 255, 0.18);
+  color: #6db4ff;
+  border: 1px solid rgba(74, 158, 255, 0.4);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.3px;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #6db4ff;
+  box-shadow: 0 0 0 0 rgba(109, 180, 255, 0.6);
+  animation: pulse 1.6s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(109, 180, 255, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(109, 180, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(109, 180, 255, 0); }
+}
+
+.narration {
+  flex: 1;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Inter', sans-serif;
+  font-style: italic;
+}
+
+.closeBtn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  padding: 0.35rem 0.55rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.closeBtn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.stageWrap {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* ─── Highlight Overlay ─── */
+.highlight {
+  position: absolute;
+  pointer-events: none;
+  border: 2.5px solid #ff4757;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 4px rgba(255, 71, 87, 0.15),
+    0 0 24px rgba(255, 71, 87, 0.5);
+  z-index: 100;
+}
+
+.highlightLabel {
+  position: absolute;
+  top: -28px;
+  left: -2px;
+  background: #ff4757;
+  color: white;
+  padding: 0.18rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+}
+
+.scanLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 71, 87, 0.8) 50%,
+    transparent 100%);
+  box-shadow: 0 0 12px rgba(255, 71, 87, 0.6);
+  pointer-events: none;
+  z-index: 101;
+}
+
+/* ─── Mobile (collapse) ─── */
+@media (max-width: 900px) {
+  .panel {
+    width: 100% !important;
+  }
+  .dragHandle {
+    display: none;
+  }
+}

@@ -1,0 +1,595 @@
+/* ─── Fake Browser Chrome ─── */
+.browser {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #f5f6f8;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  background: #e8eaed;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  font-family: 'Inter', sans-serif;
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+.dotRed { background: #ff5f57; }
+.dotYellow { background: #febc2e; }
+.dotGreen { background: #28c840; }
+
+.urlBar {
+  flex: 1;
+  margin-left: 0.6rem;
+  padding: 0.32rem 0.75rem;
+  background: white;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #5f6368;
+  font-family: 'Inter', 'Monaco', monospace;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.lock {
+  width: 11px;
+  height: 11px;
+  opacity: 0.6;
+}
+
+.viewport {
+  flex: 1;
+  background: white;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* ─── MOM Gov Site Styling ─── */
+.govHeader {
+  background: linear-gradient(180deg, #003D7C 0%, #002a5a 100%);
+  color: white;
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.govLogo {
+  width: 36px;
+  height: 36px;
+  background: white;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #003D7C;
+  font-size: 0.7rem;
+  letter-spacing: -0.5px;
+}
+
+.govTitleWrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.govTitle {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.govSubtitle {
+  font-size: 0.7rem;
+  opacity: 0.85;
+  margin-top: 0.1rem;
+}
+
+.govNav {
+  background: #f8f9fb;
+  padding: 0.6rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 0.75rem;
+  color: #5f6368;
+}
+
+.govNav b {
+  color: #003D7C;
+}
+
+.page {
+  padding: 1.75rem 1.75rem 2rem;
+  font-family: 'Inter', sans-serif;
+  color: #1a1a1a;
+}
+
+.pageTitle {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #003D7C;
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.3px;
+}
+
+.pageSubtitle {
+  font-size: 0.85rem;
+  color: #5f6368;
+  margin: 0 0 1.5rem;
+  line-height: 1.55;
+}
+
+/* ─── Step Indicator ─── */
+.stepBar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.stepNode {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: #9aa0a6;
+}
+
+.stepNodeActive {
+  color: #003D7C;
+  font-weight: 600;
+}
+
+.stepDot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #e8eaed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.stepDotActive {
+  background: #003D7C;
+  color: white;
+}
+
+.stepDotDone {
+  background: #34a853;
+  color: white;
+}
+
+.stepConnector {
+  width: 14px;
+  height: 1.5px;
+  background: #e0e0e0;
+}
+
+.stepConnectorDone {
+  background: #34a853;
+}
+
+/* ─── Form ─── */
+.formGroup {
+  margin-bottom: 1.1rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.35rem;
+}
+
+.labelRequired::after {
+  content: ' *';
+  color: #d93025;
+}
+
+.input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid #dadce0;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  color: #1a1a1a;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #003D7C;
+  box-shadow: 0 0 0 3px rgba(0, 61, 124, 0.12);
+}
+
+.help {
+  font-size: 0.72rem;
+  color: #5f6368;
+  margin-top: 0.25rem;
+}
+
+/* ─── Buttons ─── */
+.btnRow {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.btnPrimary {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.65rem 1.6rem;
+  background: #003D7C;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.btnPrimary:hover {
+  background: #002a5a;
+}
+
+.btnPrimary:active {
+  transform: translateY(1px);
+}
+
+.btnPrimary:disabled {
+  background: #c5c8cc;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.65rem 1.4rem;
+  background: white;
+  color: #003D7C;
+  border: 1.5px solid #003D7C;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnSecondary:hover {
+  background: rgba(0, 61, 124, 0.06);
+}
+
+.btnLarge {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.85rem 2rem;
+  background: #003D7C;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.btnLarge:hover {
+  background: #002a5a;
+}
+
+/* ─── Cards / Boxes ─── */
+.infoBox {
+  background: #f0f6ff;
+  border: 1px solid #c4dcfa;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.82rem;
+  color: #003D7C;
+  line-height: 1.55;
+}
+
+.infoBox b {
+  font-weight: 600;
+}
+
+.uploadBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #c5c8cc;
+  border-radius: 10px;
+  padding: 2rem 1.5rem;
+  background: #fafbfc;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  text-align: center;
+}
+
+.uploadBox:hover, .uploadBoxActive {
+  border-color: #003D7C;
+  background: #f0f6ff;
+}
+
+.uploadIcon {
+  width: 38px;
+  height: 38px;
+  opacity: 0.5;
+  margin-bottom: 0.5rem;
+}
+
+.uploadLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #003D7C;
+}
+
+.uploadHelp {
+  font-size: 0.72rem;
+  color: #5f6368;
+  margin-top: 0.25rem;
+}
+
+.uploadDone {
+  border-color: #34a853;
+  background: #f0fdf4;
+  color: #137333;
+}
+
+.uploadDone .uploadLabel {
+  color: #137333;
+}
+
+.uploadedFile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  background: white;
+  border: 1px solid #34a853;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: #137333;
+}
+
+/* ─── Payment ─── */
+.payOption {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1.5px solid #dadce0;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.payOption:hover {
+  border-color: #003D7C;
+  background: #fafbfc;
+}
+
+.payOptionSelected {
+  border-color: #003D7C;
+  background: #f0f6ff;
+  box-shadow: 0 0 0 3px rgba(0, 61, 124, 0.1);
+}
+
+.payRadio {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #c5c8cc;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.payOptionSelected .payRadio {
+  border-color: #003D7C;
+}
+
+.payOptionSelected .payRadio::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background: #003D7C;
+  border-radius: 50%;
+}
+
+.payIcon {
+  width: 38px;
+  height: 38px;
+  background: #f0f6ff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.payInfo {
+  flex: 1;
+}
+
+.payName {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.payDesc {
+  font-size: 0.72rem;
+  color: #5f6368;
+  margin-top: 0.15rem;
+}
+
+/* ─── Summary ─── */
+.summary {
+  background: #fafbfc;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.45rem 0;
+  font-size: 0.82rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.summaryRow:last-child {
+  border-bottom: none;
+}
+
+.summaryLabel {
+  color: #5f6368;
+}
+
+.summaryValue {
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 2px solid #003D7C;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #003D7C;
+}
+
+/* ─── Confirmation Page ─── */
+.successWrap {
+  text-align: center;
+  padding: 2rem 1.5rem 2.5rem;
+}
+
+.successIcon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.25rem;
+  background: #34a853;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2.4rem;
+  font-weight: 700;
+}
+
+.successTitle {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #003D7C;
+  margin: 0 0 0.5rem;
+}
+
+.successMsg {
+  font-size: 0.88rem;
+  color: #5f6368;
+  margin: 0 0 1.5rem;
+  line-height: 1.55;
+}
+
+.caseIdBox {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #f0f6ff;
+  border: 2px solid #003D7C;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.caseIdLabel {
+  font-size: 0.7rem;
+  color: #5f6368;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.3rem;
+}
+
+.caseIdValue {
+  font-family: 'Monaco', 'Inter', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #003D7C;
+  letter-spacing: 1px;
+}
+
+.nextSteps {
+  text-align: left;
+  background: white;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 0 auto;
+  max-width: 380px;
+}
+
+.nextStepsTitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #003D7C;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.6rem;
+}
+
+.nextStepsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.82rem;
+  color: #1a1a1a;
+}
+
+.nextStepsList li {
+  padding: 0.35rem 0 0.35rem 1.5rem;
+  position: relative;
+  line-height: 1.5;
+}
+
+.nextStepsList li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #34a853;
+  font-weight: 700;
+}
