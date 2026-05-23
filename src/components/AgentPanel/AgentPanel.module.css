@@ -5,6 +5,7 @@
   right: 0;
   /* width is set inline via React (resizable) */
   height: 100vh;
+  height: 100dvh; /* iOS Safari URL bar fix */
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -180,5 +181,42 @@
   }
   .dragHandle {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .panel {
+    padding: 0.7rem 0.7rem 0.85rem;
+  }
+
+  /* Wrap header so the narration gets its own row when space is tight. */
+  .panelHeader {
+    flex-wrap: wrap;
+    gap: 0.45rem 0.55rem;
+    padding: 0.15rem 0.2rem 0.75rem;
+  }
+  .statusBadge {
+    font-size: 0.66rem;
+    padding: 0.28rem 0.6rem;
+  }
+  .narration {
+    order: 3; /* push to second row */
+    flex-basis: 100%;
+    font-size: 0.74rem;
+    line-height: 1.35;
+  }
+  .closeBtn {
+    width: 36px;
+    height: 36px;
+    padding: 0.45rem;
+    margin-left: auto;
+  }
+  .closeBtn svg { width: 16px; height: 16px; }
+
+  /* Highlight label can overflow narrow targets — keep it compact */
+  .highlightLabel {
+    font-size: 0.62rem;
+    padding: 0.14rem 0.4rem;
+    top: -22px;
   }
 }

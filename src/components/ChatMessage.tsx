@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import type { ChatMessage as ChatMessageType, FieldEntry, FieldType } from '../store/useAppStore';
+import type { ChatMessage as ChatMessageType, FieldEntry, FieldType, PrepItem } from '../store/useAppStore';
 import styles from './ChatMessage.module.css';
 
 /* ──── Field type → icon ──── */
@@ -92,6 +92,72 @@ export function TypingIndicator() {
   );
 }
 
+/* ──── Agent — Prep List ──── */
+function AgentPrepListCard({
+  title,
+  items,
+  confirmed,
+  cancelled,
+  onConfirm,
+  onCancel,
+}: {
+  title?: string;
+  items: PrepItem[];
+  confirmed: boolean;
+  cancelled: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const decided = confirmed || cancelled;
+
+  return (
+    <motion.div
+      className={styles.prepCard}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.35 }}
+    >
+      <div className={styles.prepHeader}>
+        <div className={styles.prepIcon}>📋</div>
+        <div className={styles.prepTitle}>{title || "Before we begin, you'll need:"}</div>
+      </div>
+
+      <div className={styles.prepList}>
+        {items.map((item, i) => (
+          <motion.div
+            key={i}
+            className={styles.prepItem}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 + i * 0.08 }}
+          >
+            <div className={styles.prepItemIcon}>{item.icon}</div>
+            <div className={styles.prepItemText}>
+              <div className={styles.prepItemLabel}>{item.label}</div>
+              <div className={styles.prepItemDesc}>{item.desc}</div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {!decided ? (
+        <div className={styles.prepActions}>
+          <button className={styles.prepBtnConfirm} onClick={onConfirm}>
+            ✓ Yes, I have everything
+          </button>
+          <button className={styles.prepBtnCancel} onClick={onCancel}>
+            Let me check first
+          </button>
+        </div>
+      ) : (
+        <div className={styles.prepDecided}>
+          {confirmed ? '✓ Ready — agent starting...' : '✕ Cancelled. Tell me when you\'re ready.'}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 /* ──── Agent — Started ──── */
 function AgentStartedCard({ title }: { title?: string }) {
   return (
@@ -123,25 +189,37 @@ function AgentAskCard({
   prompt,
   answered,
   answer,
+  maskedToken,
+  maskedDisplay,
   onSubmit,
 }: {
   field: string;
   prompt: string;
   answered: boolean;
   answer?: string;
+  maskedToken?: string;
+  maskedDisplay?: string;
   onSubmit: (v: string) => void;
 }) {
   const [value, setValue] = useState(answer || '');
 
   if (answered) {
+    const showMask = Boolean(maskedDisplay && maskedToken);
     return (
       <motion.div
-        className={styles.agentAskAnswered}
+        className={`${styles.agentAskAnswered} ${showMask ? styles.agentAskAnsweredMasked : ''}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <span className={styles.agentAskField}>{field}</span>
-        <span className={styles.agentAskValue}>{answer}</span>
+        <span className={styles.agentAskValue}>
+          {showMask ? maskedDisplay : answer}
+        </span>
+        {showMask && (
+          <span className={styles.agentAskLock} title={`Cloud only sees ${maskedToken}`}>
+            🔒 encrypted
+          </span>
+        )}
         <span className={styles.agentAskCheck}>✓</span>
       </motion.div>
     );
@@ -186,25 +264,37 @@ function AgentAskCard({
 }
 
 /* ──── Agent — Done ──── */
-function AgentDoneCard({ summary, caseId }: { summary?: string; caseId?: string }) {
+function AgentDoneCard({
+  title,
+  summary,
+  caseId,
+}: {
+  title?: string;
+  summary?: string;
+  caseId?: string;
+}) {
+  const isCancelled = title === 'Cancelled' || (!caseId && (title || '').toLowerCase().includes('cancel'));
+
   return (
     <motion.div
-      className={styles.agentDone}
+      className={`${styles.agentDone} ${isCancelled ? styles.agentDoneCancelled : ''}`}
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
     >
       <motion.div
-        className={styles.agentDoneIcon}
+        className={`${styles.agentDoneIcon} ${isCancelled ? styles.agentDoneIconCancelled : ''}`}
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 0.15, type: 'spring', damping: 12 }}
       >
-        ✓
+        {isCancelled ? '✕' : '✓'}
       </motion.div>
-      <div className={styles.agentDoneTitle}>Application Submitted</div>
+      <div className={styles.agentDoneTitle}>
+        {title || (isCancelled ? 'Cancelled' : 'Application Submitted')}
+      </div>
       {summary && <div className={styles.agentDoneSummary}>{summary}</div>}
-      {caseId && (
+      {caseId && !isCancelled && (
         <div className={styles.agentDoneCaseBox}>
           <span className={styles.agentDoneCaseLabel}>CASE REFERENCE</span>
           <span className={styles.agentDoneCaseId}>{caseId}</span>
@@ -219,10 +309,12 @@ interface ChatMessageProps {
   msg: ChatMessageType;
   onAction?: (prompt: string) => void;
   onAgentAnswer?: (msgId: string, answer: string) => void;
+  onPrepConfirm?: (msgId: string) => void;
+  onPrepCancel?: (msgId: string) => void;
 }
 
 /* ──── Main Component ──── */
-export default function ChatMessage({ msg, onAction, onAgentAnswer }: ChatMessageProps) {
+export default function ChatMessage({ msg, onAction, onAgentAnswer, onPrepConfirm, onPrepCancel }: ChatMessageProps) {
   if (msg.role === 'user') {
     return (
       <motion.div
@@ -245,6 +337,18 @@ export default function ChatMessage({ msg, onAction, onAgentAnswer }: ChatMessag
 
   /* ── Agent messages ── */
   if (msg.agent) {
+    if (msg.agent.kind === 'prep_list') {
+      return (
+        <AgentPrepListCard
+          title={msg.agent.title}
+          items={msg.agent.items || []}
+          confirmed={Boolean(msg.agent.confirmed)}
+          cancelled={Boolean(msg.agent.cancelled)}
+          onConfirm={() => onPrepConfirm?.(msg.id)}
+          onCancel={() => onPrepCancel?.(msg.id)}
+        />
+      );
+    }
     if (msg.agent.kind === 'started') {
       return <AgentStartedCard title={msg.agent.title} />;
     }
@@ -255,12 +359,20 @@ export default function ChatMessage({ msg, onAction, onAgentAnswer }: ChatMessag
           prompt={msg.agent.prompt || ''}
           answered={Boolean(msg.agent.answer)}
           answer={msg.agent.answer}
+          maskedToken={msg.agent.maskedToken}
+          maskedDisplay={msg.agent.maskedDisplay}
           onSubmit={(v) => onAgentAnswer?.(msg.id, v)}
         />
       );
     }
     if (msg.agent.kind === 'done') {
-      return <AgentDoneCard summary={msg.agent.summary} caseId={msg.agent.caseId} />;
+      return (
+        <AgentDoneCard
+          title={msg.agent.title}
+          summary={msg.agent.summary}
+          caseId={msg.agent.caseId}
+        />
+      );
     }
   }
 

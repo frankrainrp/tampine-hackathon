@@ -23,9 +23,6 @@ const seedUsers = [
   { id: 'u-resident-02', username: 'limei',       password: 'LiMei@2026',   display_name: 'Li Mei',        role: 'resident', avatar: '👩' },
   { id: 'u-resident-03', username: 'wangfang',    password: 'Wang@2026',    display_name: 'Wang Fang',     role: 'resident', avatar: '👧' },
   { id: 'u-resident-04', username: 'resident',    password: 'resident123',  display_name: 'Test Resident', role: 'resident', avatar: '🧑' },
-  { id: 'u-staff-01',    username: 'admin',        password: 'Admin@2026',   display_name: 'System Admin',  role: 'staff',    avatar: '👨‍💼' },
-  { id: 'u-staff-02',    username: 'chenliang',    password: 'Chen@2026',    display_name: 'Chen Liang',    role: 'staff',    avatar: '🧑‍💻' },
-  { id: 'u-staff-03',    username: 'staff',        password: 'staff123',     display_name: 'Test Staff',    role: 'staff',    avatar: '👩‍💼' },
 ];
 
 // 初始化种子数据

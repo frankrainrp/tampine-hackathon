@@ -12,21 +12,25 @@ import {
 import ChatMessage, { TypingIndicator } from '../components/ChatMessage';
 import AgentPanel from '../components/AgentPanel/AgentPanel';
 import type { MockSiteId } from '../components/AgentPanel/AgentPanel';
+import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
+import type { ConfirmField } from '../components/ConfirmModal/ConfirmModal';
 import { runActionSequence } from '../agent/executor';
-import { WORK_PERMIT_RENEWAL_DEMO } from '../agent/demoScripts';
+import { CDC_VOUCHER_DEMO } from '../agent/demoScripts';
+import { speak, stopSpeech, speechSupported as isSpeechSynthSupported } from '../agent/voice';
+import { maskValue, resetPiiStore } from '../agent/piiMask';
 import styles from './WorkspacePage.module.css';
 
 let msgCounter = 0;
 const nextId = () => `msg-${++msgCounter}-${Date.now()}`;
 
 /* ─── Demo triggers ──────────────────────────────────────────── */
-const WP_RENEWAL_TRIGGER = /(renew|续约|更新).{0,12}(work.?permit|permit|工作准证|准证|wp)|wp.?renew/i;
+const CDC_TRIGGER = /(claim|领|拿|申请|get).{0,18}(cdc|voucher|消费券|代金券|vouchers?)|cdc.?voucher|消费券/i;
 
 const QUICK_STARTERS = [
-  { label: '🚀 Renew Work Permit (Demo)', text: 'I need to renew my work permit', isAgent: true },
-  { label: 'Check my HDB application status', text: 'Check my HDB application status', isAgent: false },
-  { label: 'I need a medical referral', text: 'I need a medical referral', isAgent: false },
-  { label: 'Help with unemployment benefits', text: 'Help with unemployment benefits', isAgent: false },
+  { label: '🎟️ Claim my CDC Vouchers', text: 'I want to claim my CDC vouchers', isAgent: true },
+  { label: 'Check my HDB application', text: 'Check my HDB application status', isAgent: false },
+  { label: 'Book a polyclinic appointment', text: 'Help me book a polyclinic appointment', isAgent: false },
+  { label: 'Help with healthcare subsidies', text: 'Help with healthcare subsidies', isAgent: false },
 ];
 
 export default function WorkspacePage() {
@@ -35,7 +39,9 @@ export default function WorkspacePage() {
     messages, addMessage, clearMessages,
     sessionId, setSessionId,
     backendAvailable, setBackendAvailable,
+    speechMuted, toggleSpeechMuted,
   } = useAppStore();
+  const speechAvailable = isSpeechSynthSupported();
 
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -57,7 +63,19 @@ export default function WorkspacePage() {
   const [narration, setNarration] = useState('Ready');
   const [highlight, setHighlight] = useState<{ target: string | null; label?: string }>({ target: null });
   const stageRef = useRef<HTMLDivElement | null>(null);
-  const pendingAskRef = useRef<{ msgId: string; resolve: (v: string) => void } | null>(null);
+  const pendingAskRef = useRef<{
+    msgId: string;
+    field: string;
+    resolve: (v: string) => void;
+  } | null>(null);
+
+  /* Confirm modal state */
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string;
+    subtitle?: string;
+    fields: ConfirmField[];
+    resolve: (ok: boolean) => void;
+  } | null>(null);
 
   /* Persist panel width */
   useEffect(() => {
@@ -98,35 +116,39 @@ export default function WorkspacePage() {
     }));
   }, []);
 
-  /* ── Handle user's answer to an ask_user prompt ── */
-  const handleAgentAnswer = useCallback((msgId: string, answer: string) => {
-    if (pendingAskRef.current?.msgId === msgId) {
-      updateMessageAgent(msgId, { answer });
-      pendingAskRef.current.resolve(answer);
-      pendingAskRef.current = null;
-    }
-  }, [updateMessageAgent]);
+  /* ── Handle user's answer to an ask_user prompt ──
+   * The raw value is PII-masked locally before anything else sees it:
+   *   - chat displays the redacted form (e.g. "S••••••A")
+   *   - executor receives the semantic token (e.g. "[NRIC_001]") and types
+   *     THAT into the mock site, so the "cloud" / form layer never sees the
+   *     original. The real value stays in the in-memory PII store.       */
+  const handleAgentAnswer = useCallback((msgId: string, rawAnswer: string) => {
+    const pending = pendingAskRef.current;
+    if (pending?.msgId !== msgId) return;
 
-  /* ── Run the agent demo ── */
-  const startAgentDemo = useCallback(async (kickoffText: string) => {
-    // 1. push user message
-    addMessage({
-      id: nextId(),
-      role: 'user',
-      content: kickoffText,
-      timestamp: Date.now(),
+    const masked = maskValue(pending.field, rawAnswer);
+    updateMessageAgent(msgId, {
+      answer: masked.display,
+      maskedToken: masked.token,
+      maskedDisplay: masked.display,
     });
 
-    // 2. push "agent started" message
+    pending.resolve(masked.token);
+    pendingAskRef.current = null;
+  }, [updateMessageAgent]);
+
+  /* ── Run the actual agent demo (after prep confirmation) ── */
+  const runAgentDemo = useCallback(async () => {
+    // push "agent started" message
     addMessage({
       id: nextId(),
       role: 'assistant',
-      agent: { kind: 'started', title: 'Work Permit Renewal — Auto-pilot' },
+      agent: { kind: 'started', title: 'CDC Voucher Claim — Auto-pilot' },
       timestamp: Date.now(),
     });
 
-    // 3. open panel
-    setCurrentSite('mom-renewal');
+    // open panel
+    setCurrentSite('cdc-voucher');
     setPanelOpen(true);
     setAgentRunning(true);
     setNarration('Initializing agent...');
@@ -139,9 +161,12 @@ export default function WorkspacePage() {
     }
 
     // 5. run sequence
-    const result = await runActionSequence(WORK_PERMIT_RENEWAL_DEMO, stageRef.current, {
+    const result = await runActionSequence(CDC_VOUCHER_DEMO, stageRef.current, {
       setHighlight: (target, label) => setHighlight({ target, label }),
-      setNarration: (msg) => setNarration(msg),
+      setNarration: (msg) => {
+        setNarration(msg);
+        speak(msg, { muted: useAppStore.getState().speechMuted });
+      },
       askUser: (field, prompt) =>
         new Promise<string>((resolve) => {
           const msgId = nextId();
@@ -151,30 +176,117 @@ export default function WorkspacePage() {
             agent: { kind: 'ask_user', field, prompt },
             timestamp: Date.now(),
           });
-          pendingAskRef.current = { msgId, resolve };
+          pendingAskRef.current = { msgId, field, resolve };
+          speak(prompt, { muted: useAppStore.getState().speechMuted, interrupt: true });
+        }),
+      askConfirm: (title, subtitle, fields) =>
+        new Promise<boolean>((resolve) => {
+          setConfirmModal({
+            title,
+            subtitle,
+            fields,
+            resolve: (ok) => {
+              setConfirmModal(null);
+              resolve(ok);
+            },
+          });
+          // Read out the title + total/headline (first highlighted field) so an
+          // elderly user without good eyesight still hears what they're approving.
+          const headline = fields.find((f) => f.highlight) ?? fields[0];
+          const speech =
+            `${title}. ${subtitle ? subtitle + '. ' : ''}` +
+            (headline ? `${headline.label}: ${headline.value}.` : '');
+          speak(speech, { muted: useAppStore.getState().speechMuted, interrupt: true });
         }),
     });
 
-    // 6. read caseId from the mock site itself (more reliable than the action payload)
+    if (result.cancelled) {
+      // 6a. user declined at the confirm modal — push a cancellation note, not a done card
+      const cancelMsg = "I didn't submit anything. Tell me what you'd like to change and we can try again.";
+      addMessage({
+        id: nextId(),
+        role: 'assistant',
+        agent: {
+          kind: 'done',
+          title: 'Cancelled',
+          summary: cancelMsg,
+        },
+        timestamp: Date.now(),
+      });
+      setAgentRunning(false);
+      setNarration('Cancelled — nothing was submitted.');
+      setHighlight({ target: null });
+      speak(cancelMsg, { muted: useAppStore.getState().speechMuted, interrupt: true });
+      return;
+    }
+
+    // 6b. read caseId from the mock site itself (more reliable than the action payload)
     const caseEl = stageRef.current?.querySelector('[data-agent-id="case-id-value"]');
-    const caseId = result.caseId || caseEl?.textContent?.trim() || 'WP00000-0000';
+    const caseId = result.caseId || caseEl?.textContent?.trim() || 'CDC2026-00000';
 
     // 7. push "agent done" message
+    const doneSummary = 'S$ 300 in CDC Vouchers claimed. Collect at Our Tampines Hub by 30 June 2026.';
     addMessage({
       id: nextId(),
       role: 'assistant',
       agent: {
         kind: 'done',
-        summary: 'Work Permit renewal submitted. SMS notification will arrive in 3-5 working days.',
+        summary: doneSummary,
         caseId,
       },
       timestamp: Date.now(),
     });
 
     setAgentRunning(false);
-    setNarration('Done. Application submitted successfully.');
+    setNarration('Done. Vouchers claimed successfully.');
     setHighlight({ target: null });
+    speak(
+      `All done! ${doneSummary} Your case reference is ${caseId}.`,
+      { muted: useAppStore.getState().speechMuted, interrupt: true },
+    );
   }, [addMessage]);
+
+  /* ── Push the prep-list card (step before runAgentDemo) ── */
+  const startWithPrepCheck = useCallback((kickoffText: string) => {
+    // 1. push user message
+    addMessage({
+      id: nextId(),
+      role: 'user',
+      content: kickoffText,
+      timestamp: Date.now(),
+    });
+
+    // 2. push prep list — wait for user confirm
+    addMessage({
+      id: nextId(),
+      role: 'assistant',
+      agent: {
+        kind: 'prep_list',
+        title: "Before we start, you'll need:",
+        items: [
+          { icon: '🪪', label: 'Your NRIC', desc: 'Identity card number for Singpass login' },
+          { icon: '📍', label: 'Where to collect', desc: 'A Tampines location near you' },
+          { icon: '⏱️', label: 'About 2 minutes', desc: "I'll do the rest — you just confirm" },
+        ],
+      },
+      timestamp: Date.now(),
+    });
+
+    speak(
+      "Before we begin, please make sure you have your NRIC ready and pick a collection point in Tampines. I'll do the rest. Tap yes when you are ready.",
+      { muted: useAppStore.getState().speechMuted, interrupt: true },
+    );
+  }, [addMessage]);
+
+  const handlePrepConfirm = useCallback((msgId: string) => {
+    updateMessageAgent(msgId, { confirmed: true });
+    /* slight delay so the "Ready..." line is visible before panel slides in */
+    setTimeout(() => runAgentDemo(), 600);
+  }, [updateMessageAgent, runAgentDemo]);
+
+  const handlePrepCancel = useCallback((msgId: string) => {
+    updateMessageAgent(msgId, { cancelled: true });
+  }, [updateMessageAgent]);
 
   /* ── Send message (with agent trigger detection) ── */
   const handleSend = async (overrideText?: string, forceAgent?: boolean) => {
@@ -184,9 +296,9 @@ export default function WorkspacePage() {
     setInput('');
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
-    // Trigger agent demo on matching prompt
-    if (forceAgent || WP_RENEWAL_TRIGGER.test(text)) {
-      await startAgentDemo(text);
+    // Trigger agent demo on matching prompt → show prep check first
+    if (forceAgent || CDC_TRIGGER.test(text)) {
+      startWithPrepCheck(text);
       return;
     }
 
@@ -280,12 +392,23 @@ export default function WorkspacePage() {
   /* ── Reset ── */
   const handleNewChat = () => {
     if (agentRunning) return;
+    stopSpeech();
+    resetPiiStore();
     clearMessages();
     setInput('');
     setPanelOpen(false);
     setCurrentSite(null);
     setNarration('Ready');
   };
+
+  const handleToggleMute = () => {
+    toggleSpeechMuted();
+    // If we're muting mid-narration, cut it off immediately.
+    if (!speechMuted) stopSpeech();
+  };
+
+  /* Stop speech on unmount */
+  useEffect(() => stopSpeech, []);
 
   /* CSS var consumed by chatArea + inputBarWrap so they shrink when panel is open */
   const layoutStyle = {
@@ -309,6 +432,27 @@ export default function WorkspacePage() {
             data-online={backendAvailable}
             data-ai={aiConfigured}
           />
+          {speechAvailable && (
+            <button
+              className={styles.muteBtn}
+              onClick={handleToggleMute}
+              aria-label={speechMuted ? 'Unmute voice' : 'Mute voice'}
+              title={speechMuted ? 'Voice off — tap to enable' : 'Voice on — tap to mute'}
+              data-muted={speechMuted}
+            >
+              {speechMuted ? (
+                /* speaker with X — muted */
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M16.5 12L19 9.5l-1.5-1.5L15 10.5 12.5 8 11 9.5 13.5 12 11 14.5 12.5 16 15 13.5 17.5 16 19 14.5 16.5 12zM3 9v6h4l5 5V4L7 9H3z"/>
+                </svg>
+              ) : (
+                /* speaker with waves — active */
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+              )}
+            </button>
+          )}
           <span className={styles.roleBadge}>
             {currentUser ? `${currentUser.avatar} ${currentUser.display_name}` : role}
           </span>
@@ -330,7 +474,8 @@ export default function WorkspacePage() {
                 {currentUser ? `Hello, ${currentUser.display_name}` : 'How can I help you today?'}
               </h2>
               <p className={styles.emptyHint}>
-                Try the AI agent demo — I&apos;ll fill the entire MOM renewal form for you.
+                Tap the red button below and I&apos;ll claim your CDC Vouchers for you — no
+                clicking, no typing forms. Just confirm what I prepare.
               </p>
               <div className={styles.quickStarters}>
                 {QUICK_STARTERS.map((q) => (
@@ -352,6 +497,8 @@ export default function WorkspacePage() {
                   msg={msg}
                   onAction={(prompt) => handleSend(prompt)}
                   onAgentAnswer={handleAgentAnswer}
+                  onPrepConfirm={handlePrepConfirm}
+                  onPrepCancel={handlePrepCancel}
                 />
               ))}
               <AnimatePresence>{isTyping && <TypingIndicator />}</AnimatePresence>
@@ -362,7 +509,7 @@ export default function WorkspacePage() {
       </main>
 
       {/* ── Input Bar ── */}
-      <div className={styles.inputBarWrap}>
+      <div className={styles.inputBarWrap} data-panel-open={panelOpen}>
         <div className={styles.inputBar}>
           <div className={styles.inputGlass}>
             <div className={styles.inputGlassInner} />
@@ -419,6 +566,16 @@ export default function WorkspacePage() {
         stageRef={stageRef}
         width={panelWidth}
         onWidthChange={setPanelWidth}
+      />
+
+      {/* ── Pre-submission Confirmation Modal ── */}
+      <ConfirmModal
+        open={confirmModal !== null}
+        title={confirmModal?.title || ''}
+        subtitle={confirmModal?.subtitle}
+        fields={confirmModal?.fields || []}
+        onYes={() => confirmModal?.resolve(true)}
+        onNo={() => confirmModal?.resolve(false)}
       />
     </div>
   );

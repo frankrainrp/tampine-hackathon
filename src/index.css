@@ -1,33 +1,41 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Grid Background */
-  --grid-color: #E1E1E1;
-  --grid-bg: #F3F3F3;
+  /* Elder Mode (default): everything bigger, higher contrast, slower */
+  font-size: 18px; /* base for all rem units (vs default 16) */
+
+  /* Grid Background — softer for less visual noise */
+  --grid-color: #ECECEC;
+  --grid-bg: #F7F7F7;
   --grid-size: 55px;
 
-  /* Glass tokens */
-  --glass-bg: rgba(255, 255, 255, 0.04);
-  --glass-bg-light: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(51, 51, 51, 0.08);
+  /* Glass tokens — more opaque for higher contrast (elder mode) */
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-bg-light: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(51, 51, 51, 0.12);
   --glass-blur: 2px;
   --glass-blur-light: 10px;
 
-  /* Text */
-  --text-primary: #1a1a2e;
-  --text-secondary: #3e3e3e;
-  --text-muted: #8a8a9a;
+  /* Text — darker for elder contrast */
+  --text-primary: #0a0a14;
+  --text-secondary: #2a2a3a;
+  --text-muted: #5a5a6a;
   --text-inverse: #f5f5f5;
 
-  /* Accent */
-  --accent: #3e3e3e;
-  --accent-hover: #2a2a2a;
+  /* Accent — CDC red */
+  --accent: #C8102E;
+  --accent-hover: #a30c25;
 
   /* Spacing */
   --radius-sm: 12px;
   --radius-md: 18px;
   --radius-lg: 24px;
   --radius-pill: 9999px;
+
+  /* Elder-mode sizing tokens */
+  --btn-min-height: 56px;
+  --btn-min-height-large: 68px;
+  --tap-target: 48px;
 
   /* Shadows */
   --shadow-glass:

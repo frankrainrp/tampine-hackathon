@@ -1,10 +1,10 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './AgentPanel.module.css';
-import MomRenewal from '../../mock/MomRenewal/MomRenewal';
+import CdcVoucher from '../../mock/CdcVoucher/CdcVoucher';
 import HighlightOverlay from './HighlightOverlay';
 
-export type MockSiteId = 'mom-renewal';
+export type MockSiteId = 'cdc-voucher';
 
 interface Props {
   open: boolean;
@@ -121,7 +121,7 @@ export default function AgentPanel({
 
           <div className={styles.stageWrap}>
             <div ref={containerRef} className={styles.stage}>
-              {site === 'mom-renewal' && <MomRenewal onCaseCreated={onCaseCreated} />}
+              {site === 'cdc-voucher' && <CdcVoucher onCaseCreated={onCaseCreated} />}
               <HighlightOverlay
                 target={highlightTarget}
                 containerRef={containerRef}

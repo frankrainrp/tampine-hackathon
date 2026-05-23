@@ -144,9 +144,6 @@ export default function LoginPage() {
             <button type="button" className={styles.quickFill} onClick={() => { setUsername('resident'); setPassword('resident123'); setError(''); }}>
               Resident
             </button>
-            <button type="button" className={styles.quickFill} onClick={() => { setUsername('admin'); setPassword('Admin@2026'); setError(''); }}>
-              Admin
-            </button>
           </div>
         </div>
       </motion.form>

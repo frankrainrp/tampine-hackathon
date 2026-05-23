@@ -1,6 +1,9 @@
 .workspace {
   width: 100vw;
   min-height: 100vh;
+  /* iOS Safari shrinks 100vh by the URL bar's height — use 100dvh on browsers
+   * that support it so the layout doesn't jump as the bar appears/disappears. */
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -115,6 +118,34 @@
   width: 20px;
   height: 20px;
   fill: var(--text-muted);
+}
+
+/* ──── Mute / voice toggle ──── */
+.muteBtn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+  color: #22c55e;
+}
+
+.muteBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.muteBtn[data-muted="true"] {
+  color: #9aa0a6;
+}
+
+.muteBtn svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* ──── Sidebar ──── */
@@ -462,16 +493,19 @@
 }
 
 .quickBtnPrimary {
-  background: linear-gradient(135deg, #4a9eff 0%, #7c5cff 100%);
+  background: linear-gradient(135deg, #C8102E 0%, #e63946 100%);
   border-color: transparent;
   color: white;
-  font-weight: 600;
-  box-shadow: 0 4px 14px rgba(74, 158, 255, 0.35);
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 0.75rem 1.4rem;
+  min-height: 52px;
+  box-shadow: 0 4px 16px rgba(200, 16, 46, 0.35);
 }
 
 .quickBtnPrimary:hover {
-  background: linear-gradient(135deg, #3b8eee 0%, #6b4cff 100%);
-  box-shadow: 0 6px 18px rgba(74, 158, 255, 0.45);
+  background: linear-gradient(135deg, #a30c25 0%, #d62839 100%);
+  box-shadow: 0 6px 22px rgba(200, 16, 46, 0.45);
 }
 
 /* ──── Input Bar (bottom, glassmorphism) ──── */
@@ -796,15 +830,79 @@
 }
 
 @media (max-width: 640px) {
-  .chatArea {
-    padding: 1.25rem 1rem;
-    padding-bottom: 120px;
+  /* Top bar — tighter spacing, shrink/hide chrome that crowds the badge */
+  .topBar {
+    padding: 0 0.85rem;
+    height: 52px;
+    gap: 0.5rem;
   }
-  .inputBarWrap {
-    padding: 0.75rem 1rem 1rem;
-    right: 0; /* on mobile, agent panel takes full width so chat is hidden anyway */
+  .topBarLeft { gap: 0.5rem; }
+  .topBarTitle {
+    font-size: 0.95rem;
+    /* truncate so it can't push the right cluster off-screen */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 50vw;
   }
+  .topBarRight { gap: 0.4rem; }
+  /* Hide the username, keep only the avatar emoji */
+  .roleBadge {
+    max-width: 2rem;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+    padding: 4px 6px;
+    letter-spacing: 0;
+  }
+  .menuBtn, .logoutBtn, .muteBtn {
+    width: 34px;
+    height: 34px;
+  }
+
+  /* Main column adjustments */
   .main {
     padding-right: 0;
+    padding-top: 52px;
+  }
+  .chatArea {
+    padding: 1.25rem 0.85rem;
+    padding-bottom: 130px;
+    gap: 1rem;
+  }
+
+  /* Empty state — slightly smaller, more breathable on phones */
+  .emptyState {
+    padding: 2rem 1rem;
+    gap: 1rem;
+  }
+  .emptyTitle { font-size: 1.1rem; }
+  .emptyHint { font-size: 0.85rem; }
+  .emptyIcon {
+    width: 60px;
+    height: 60px;
+  }
+  .emptyIcon svg { width: 26px; height: 26px; }
+  .quickBtn {
+    width: 100%;
+    text-align: center;
+    padding: 0.7rem 1rem;
+    font-size: 0.92rem;
+  }
+  .quickBtnPrimary {
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  /* Input bar */
+  .inputBarWrap {
+    padding: 0.6rem 0.75rem 0.85rem;
+    right: 0; /* agent panel covers full width on mobile */
+  }
+
+  /* Hide chat input bar entirely while agent panel is open — on phones the
+   * panel covers the whole screen and the user shouldn't see two input rows. */
+  .inputBarWrap[data-panel-open="true"] {
+    display: none;
   }
 }

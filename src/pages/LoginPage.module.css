@@ -1,6 +1,7 @@
 .loginPage {
   width: 100vw;
   min-height: 100vh;
+  min-height: 100dvh; /* iOS Safari URL bar fix */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -302,14 +303,44 @@
   transform: translateY(-1px);
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
+  .loginPage {
+    padding: 1.5rem 1rem;
+    gap: 1.5rem;
+  }
   .title {
     font-size: 1.5rem;
   }
+  .subtitle {
+    font-size: 0.84rem;
+  }
+  .logoIcon {
+    width: 44px;
+    height: 44px;
+  }
+  .logoIcon svg { width: 22px; height: 22px; }
+
   .loginCard {
     --w: 100%;
   }
   .formContent {
-    padding: 2rem 1.25rem 1.5rem;
+    padding: 1.75rem 1.15rem 1.4rem;
+  }
+
+  /* Inputs — keep ≥16px font-size to avoid iOS auto-zoom on focus */
+  .input {
+    font-size: 16px;
+    min-height: 48px;
+  }
+  .submitBtn {
+    min-height: 52px;
+    font-size: 1rem;
+  }
+
+  /* Quick-fill row: wrap to second line on very narrow phones */
+  .testHint {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
   }
 }

@@ -31,7 +31,7 @@ db.exec(`
     username      TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     display_name  TEXT NOT NULL,
-    role          TEXT NOT NULL CHECK(role IN ('resident', 'staff')),
+    role          TEXT NOT NULL CHECK(role IN ('resident')),
     avatar        TEXT DEFAULT '',
     created_at    INTEGER NOT NULL DEFAULT (unixepoch()),
     last_login    INTEGER
@@ -41,7 +41,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS sessions (
     id          TEXT PRIMARY KEY,
     user_id     TEXT REFERENCES users(id),
-    role        TEXT NOT NULL CHECK(role IN ('resident', 'staff')),
+    role        TEXT NOT NULL CHECK(role IN ('resident')),
     title       TEXT NOT NULL DEFAULT 'New Conversation',
     created_at  INTEGER NOT NULL DEFAULT (unixepoch()),
     updated_at  INTEGER NOT NULL DEFAULT (unixepoch())
@@ -72,21 +72,24 @@ db.exec(`
 
 // ─── 种子数据：内置测试账号 ─────────────────────────────────────
 const seedUsers = [
-  // Resident accounts
   { id: 'u-resident-01', username: 'zhangwei',    password: 'Zhang@2026',   display_name: 'Zhang Wei',     role: 'resident', avatar: '👤' },
   { id: 'u-resident-02', username: 'limei',       password: 'LiMei@2026',   display_name: 'Li Mei',        role: 'resident', avatar: '👩' },
   { id: 'u-resident-03', username: 'wangfang',    password: 'Wang@2026',    display_name: 'Wang Fang',     role: 'resident', avatar: '👧' },
   { id: 'u-resident-04', username: 'resident',    password: 'resident123',  display_name: 'Test Resident', role: 'resident', avatar: '🧑' },
-  // Staff accounts
-  { id: 'u-staff-01',    username: 'admin',        password: 'Admin@2026',   display_name: 'System Admin',  role: 'staff',    avatar: '👨‍💼' },
-  { id: 'u-staff-02',    username: 'chenliang',    password: 'Chen@2026',    display_name: 'Chen Liang',    role: 'staff',    avatar: '🧑‍💻' },
-  { id: 'u-staff-03',    username: 'staff',        password: 'staff123',     display_name: 'Test Staff',    role: 'staff',    avatar: '👩‍💼' },
 ];
 
 const insertUser = db.prepare(`
   INSERT OR IGNORE INTO users (id, username, password_hash, display_name, role, avatar)
   VALUES (?, ?, ?, ?, ?, ?)
 `);
+
+/* Migrate any pre-existing 'staff' rows out — the role no longer exists.
+ * Safe to run repeatedly; on a fresh DB these affect 0 rows. The old CHECK
+ * constraint in already-created tables still allows reading 'staff' values,
+ * so we delete them here rather than rely on the new constraint catching them
+ * at insert time. */
+db.prepare(`DELETE FROM sessions WHERE role = 'staff'`).run();
+db.prepare(`DELETE FROM users WHERE role = 'staff'`).run();
 
 const seedTx = db.transaction(() => {
   for (const u of seedUsers) {

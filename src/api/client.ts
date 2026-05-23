@@ -21,7 +21,7 @@ export interface LoginUser {
   id: string;
   username: string;
   display_name: string;
-  role: 'resident' | 'staff';
+  role: 'resident';
   avatar: string;
 }
 
@@ -64,7 +64,7 @@ export async function testApiConnection(): Promise<ApiTestResult> {
 // ─── 会话管理 (CRUD) ────────────────────────────────────────────
 export interface DBSession {
   id: string;
-  role: 'resident' | 'staff';
+  role: 'resident';
   title: string;
   created_at: number;
   updated_at: number;
@@ -75,7 +75,7 @@ export function listSessions() {
   return request<DBSession[]>('/sessions');
 }
 
-export function createSession(role: 'resident' | 'staff', title?: string) {
+export function createSession(role: 'resident', title?: string) {
   return request<DBSession>('/sessions', {
     method: 'POST',
     body: JSON.stringify({ role, title }),

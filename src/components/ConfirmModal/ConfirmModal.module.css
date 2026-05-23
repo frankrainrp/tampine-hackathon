@@ -1,0 +1,230 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10, 10, 20, 0.55);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.modal {
+  width: 100%;
+  max-width: 540px;
+  background: white;
+  border-radius: 24px;
+  padding: 2rem 2rem 1.85rem;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.1rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+}
+
+.title {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 0.4rem;
+  line-height: 1.25;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin: 0 0 1.5rem;
+  line-height: 1.55;
+}
+
+.summary {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.65rem;
+  text-align: left;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 1rem;
+}
+
+.row:last-child { border-bottom: none; }
+
+.rowLabel {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.rowValue {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: right;
+  word-break: break-word;
+}
+
+.rowValueHighlight {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.4rem;
+  color: #C8102E;
+  font-weight: 800;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.btnYes {
+  width: 100%;
+  padding: 1.15rem;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 72px;
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.35);
+  transition: background 0.15s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.btnYes:hover {
+  background: #047857;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(5, 150, 105, 0.45);
+}
+
+.btnYes:active { transform: translateY(0); }
+
+.btnNo {
+  width: 100%;
+  padding: 0.95rem;
+  background: white;
+  color: var(--text-secondary);
+  border: 2px solid #cbd5e1;
+  border-radius: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 60px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btnNo:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.privacy {
+  margin-top: 1rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+@media (max-width: 640px) {
+  .backdrop {
+    padding: 0.85rem;
+    align-items: flex-end; /* slide-up sheet feel on phones */
+  }
+
+  .modal {
+    padding: 1.5rem 1.25rem 1.35rem;
+    border-radius: 20px;
+    max-height: 92dvh;
+    overflow-y: auto;
+  }
+
+  .icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.85rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .summary {
+    padding: 0.85rem 0.95rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .row {
+    padding: 0.5rem 0;
+    gap: 0.6rem;
+  }
+
+  .rowLabel {
+    font-size: 0.78rem;
+  }
+
+  .rowValue {
+    font-size: 0.96rem;
+  }
+
+  .rowValueHighlight {
+    font-size: 1.25rem;
+  }
+
+  .btnYes {
+    padding: 1rem;
+    font-size: 1.08rem;
+    min-height: 62px;
+    border-radius: 12px;
+  }
+
+  .btnNo {
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    min-height: 54px;
+    border-radius: 12px;
+  }
+
+  .privacy {
+    font-size: 0.72rem;
+    margin-top: 0.85rem;
+  }
+}

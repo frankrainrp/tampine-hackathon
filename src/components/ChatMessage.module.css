@@ -141,16 +141,16 @@
 
 .actionBtn {
   font-family: 'Inter', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 500;
-  padding: 0.55rem 1.15rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 0.75rem 1.35rem;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(8px);
-  color: var(--text-secondary);
+  border: 1.5px solid rgba(0, 0, 0, 0.14);
+  background: white;
+  color: var(--text-primary);
   cursor: pointer;
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  min-height: var(--tap-target, 48px);
 }
 
 .actionBtn:hover {
@@ -324,6 +324,132 @@
   }
 }
 
+/* ──── Agent — Prep List Card ──── */
+.prepCard {
+  align-self: flex-start;
+  max-width: 92%;
+  padding: 1.15rem 1.3rem 1.25rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 2px solid #fbbf24;
+  box-shadow: 0 4px 18px rgba(251, 191, 36, 0.22);
+}
+
+.prepHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.95rem;
+}
+
+.prepIcon { font-size: 1.6rem; }
+
+.prepTitle {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #92400e;
+  line-height: 1.3;
+}
+
+.prepList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 1.1rem;
+}
+
+.prepItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.95rem;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+}
+
+.prepItemIcon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #fef3c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.prepItemText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.prepItemLabel {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.prepItemDesc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.prepActions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.prepBtnConfirm {
+  flex: 1;
+  min-width: 180px;
+  padding: 0.85rem 1.2rem;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: var(--btn-min-height-large, 60px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+  transition: background 0.15s, transform 0.15s;
+}
+
+.prepBtnConfirm:hover {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.prepBtnCancel {
+  padding: 0.85rem 1.2rem;
+  background: white;
+  color: #92400e;
+  border: 2px solid #d97706;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: var(--btn-min-height-large, 60px);
+}
+
+.prepBtnCancel:hover { background: #fffbeb; }
+
+.prepDecided {
+  text-align: center;
+  padding: 0.6rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
 /* ──── Agent — Started Card ──── */
 .agentStarted {
   align-self: flex-start;
@@ -411,15 +537,17 @@
 
 .agentAskInput {
   flex: 1;
-  padding: 0.55rem 0.85rem;
-  border: 1.5px solid rgba(0, 0, 0, 0.12);
-  border-radius: 8px;
+  padding: 0.85rem 1.05rem;
+  border: 2px solid rgba(0, 0, 0, 0.14);
+  border-radius: 10px;
   background: white;
   font-family: 'Inter', sans-serif;
-  font-size: 0.88rem;
+  font-size: 1rem;
   color: var(--text-primary);
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
+  min-height: var(--tap-target, 48px);
+  box-sizing: border-box;
 }
 
 .agentAskInput:focus {
@@ -428,16 +556,17 @@
 }
 
 .agentAskBtn {
-  padding: 0.55rem 1.15rem;
+  padding: 0.85rem 1.6rem;
   background: #f97316;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-family: 'Inter', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
+  min-height: var(--tap-target, 48px);
 }
 
 .agentAskBtn:hover { background: #ea580c; }
@@ -472,6 +601,28 @@
   margin-left: auto;
 }
 
+.agentAskAnsweredMasked {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%);
+  border-color: #5eead4;
+  flex-wrap: wrap;
+}
+
+.agentAskLock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #0e7490;
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.3px;
+  cursor: help;
+  text-transform: uppercase;
+}
+
 /* ──── Agent — Done Card ──── */
 .agentDone {
   align-self: flex-start;
@@ -497,6 +648,18 @@
   font-size: 1.8rem;
   font-weight: 700;
   box-shadow: 0 4px 14px rgba(52, 168, 83, 0.4);
+}
+
+/* Cancelled variant — grey/red */
+.agentDoneCancelled {
+  background: #f8f9fa;
+  border-color: #d1d5db;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.agentDoneIconCancelled {
+  background: #9ca3af;
+  box-shadow: 0 4px 14px rgba(156, 163, 175, 0.35);
 }
 
 .agentDoneTitle {
@@ -543,9 +706,106 @@
 
 @media (max-width: 640px) {
   .userBubble {
-    max-width: 85%;
+    max-width: 88%;
+    font-size: 0.92rem;
+    padding: 0.75rem 1rem;
   }
   .aiBubble {
-    max-width: 95%;
+    max-width: 100%;
+    gap: 0.6rem;
   }
+  .aiReply {
+    padding: 0.85rem 1rem;
+    font-size: 0.92rem;
+  }
+
+  /* Bullet field cards */
+  .bulletItem {
+    padding: 0.6rem 0.85rem;
+    gap: 0.6rem;
+  }
+  .bulletIcon { width: 28px; height: 28px; font-size: 0.92rem; }
+  .bulletLabel { font-size: 0.68rem; }
+  .bulletValue { font-size: 0.85rem; }
+
+  /* Prep list card */
+  .prepCard {
+    max-width: 100%;
+    padding: 1rem 1.05rem;
+  }
+  .prepTitle { font-size: 0.98rem; }
+  .prepItem {
+    padding: 0.6rem 0.7rem;
+    gap: 0.7rem;
+  }
+  .prepItemIcon {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+  .prepItemLabel { font-size: 0.9rem; }
+  .prepItemDesc { font-size: 0.78rem; }
+  .prepActions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .prepBtnConfirm, .prepBtnCancel {
+    width: 100%;
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    min-height: 54px;
+  }
+
+  /* Agent started card */
+  .agentStarted {
+    max-width: 100%;
+    padding: 0.8rem 0.95rem;
+  }
+  .agentStartedTitle { font-size: 0.88rem; }
+  .agentStartedSub { font-size: 0.72rem; }
+
+  /* Ask user card */
+  .agentAsk {
+    max-width: 100%;
+    padding: 0.85rem 0.95rem;
+  }
+  .agentAskPrompt {
+    font-size: 0.86rem;
+  }
+  .agentAskInput {
+    font-size: 0.92rem;
+    min-height: 44px; /* iOS 16-pt min for non-zoom focus */
+    padding: 0.55rem 0.75rem;
+  }
+  .agentAskBtn {
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
+    min-height: 44px;
+  }
+
+  /* Answered chip — let it wrap on narrow phones */
+  .agentAskAnswered {
+    flex-wrap: wrap;
+    max-width: 100%;
+    border-radius: 16px;
+    padding: 0.55rem 0.85rem;
+  }
+
+  /* Done card */
+  .agentDone {
+    max-width: 100%;
+    padding: 1.15rem 1.1rem 1.25rem;
+  }
+  .agentDoneIcon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.55rem;
+    margin-bottom: 0.7rem;
+  }
+  .agentDoneTitle { font-size: 1rem; }
+  .agentDoneSummary { font-size: 0.78rem; }
+  .agentDoneCaseBox {
+    padding: 0.6rem 1.2rem;
+  }
+  .agentDoneCaseId { font-size: 1.1rem; }
 }

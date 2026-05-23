@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 
-export type UserRole = 'resident' | 'staff' | null;
+export type UserRole = 'resident' | null;
 
 export interface CurrentUser {
   id: string;
   username: string;
   display_name: string;
-  role: 'resident' | 'staff';
+  role: 'resident';
   avatar: string;
 }
 
@@ -38,13 +38,30 @@ export interface AIResponse {
   actions?: ActionButton[];
 }
 
+export interface PrepItem {
+  icon: string;
+  label: string;
+  desc: string;
+}
+
 export interface AgentMessageData {
-  kind: 'started' | 'ask_user' | 'done';
+  kind: 'prep_list' | 'started' | 'ask_user' | 'done';
   title?: string;
+  /** For prep_list: items the user must have on hand */
+  items?: PrepItem[];
+  /** For prep_list: tracks whether user has confirmed */
+  confirmed?: boolean;
+  /** For prep_list: tracks cancellation (user clicked "let me check first") */
+  cancelled?: boolean;
+  /** For ask_user: */
   field?: string;
   prompt?: string;
-  /** For ask_user: filled in after user submits the answer */
+  /** For ask_user: filled in after user submits the answer (the masked display form) */
   answer?: string;
+  /** For ask_user: the semantic token uploaded to the cloud, e.g. "[NRIC_001]" */
+  maskedToken?: string;
+  /** For ask_user: redacted display form, e.g. "S••••••A" */
+  maskedDisplay?: string;
   /** For done: */
   summary?: string;
   caseId?: string;
@@ -85,7 +102,16 @@ interface AppState {
   /* UI */
   sidebarOpen: boolean;
   toggleSidebar: () => void;
+
+  /* Voice narration */
+  speechMuted: boolean;
+  toggleSpeechMuted: () => void;
 }
+
+const initialMuted = (() => {
+  if (typeof window === 'undefined') return false;
+  return window.localStorage.getItem('agent-speech-muted') === '1';
+})();
 
 export const useAppStore = create<AppState>((set) => ({
   role: null,
@@ -107,5 +133,15 @@ export const useAppStore = create<AppState>((set) => ({
 
   sidebarOpen: false,
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+
+  speechMuted: initialMuted,
+  toggleSpeechMuted: () =>
+    set((s) => {
+      const next = !s.speechMuted;
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('agent-speech-muted', next ? '1' : '0');
+      }
+      return { speechMuted: next };
+    }),
 }));
 

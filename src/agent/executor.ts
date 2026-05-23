@@ -4,11 +4,24 @@ import type { MockSiteId } from '../components/AgentPanel/AgentPanel';
  * The contract between the AI (or hardcoded scripts) and the front-end.
  * Each action is executed sequentially. */
 
+export interface ConfirmActionField {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}
+
 export type AgentAction =
   | { type: 'navigate'; site: MockSiteId; narration: string }
   | { type: 'click'; target: string; narration: string; label?: string }
   | { type: 'fill'; target: string; value: string; narration: string; label?: string }
   | { type: 'ask_user'; field: string; prompt: string; target: string; narration: string }
+  | {
+      type: 'confirm';
+      title: string;
+      subtitle?: string;
+      fields: ConfirmActionField[];
+      narration: string;
+    }
   | { type: 'wait'; ms: number; narration: string }
   | { type: 'done'; summary: string; caseId?: string };
 
@@ -41,8 +54,8 @@ function setReactInputValue(input: HTMLInputElement | HTMLTextAreaElement, value
   input.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
-/* Type a value character-by-character (for cinematic effect) */
-async function typeIntoInput(input: HTMLInputElement, value: string, perChar = 35) {
+/* Type a value character-by-character (for cinematic effect, elder-mode pace) */
+async function typeIntoInput(input: HTMLInputElement, value: string, perChar = 55) {
   setReactInputValue(input, '');
   for (let i = 1; i <= value.length; i++) {
     setReactInputValue(input, value.slice(0, i));
@@ -56,6 +69,11 @@ export interface ExecutorCallbacks {
   setHighlight: (target: string | null, label?: string) => void;
   setNarration: (msg: string) => void;
   askUser: (field: string, prompt: string) => Promise<string>;
+  askConfirm: (
+    title: string,
+    subtitle: string | undefined,
+    fields: ConfirmActionField[],
+  ) => Promise<boolean>;
   pushChatMessage?: (msg: string) => void;
 }
 
@@ -63,7 +81,7 @@ export async function executeAction(
   action: AgentAction,
   container: HTMLElement,
   cb: ExecutorCallbacks,
-): Promise<{ done?: boolean; caseId?: string }> {
+): Promise<{ done?: boolean; caseId?: string; cancelled?: boolean }> {
   cb.setNarration(action.type === 'done' ? '' : action.narration || '');
 
   switch (action.type) {
@@ -73,27 +91,27 @@ export async function executeAction(
       return {};
 
     case 'click': {
-      cb.setHighlight(action.target, action.label || 'Click');
-      await delay(950);
+      cb.setHighlight(action.target, action.label || 'Tap');
+      await delay(1300); /* elder mode: longer so user can read narration */
       const el = findEl(container, action.target);
       if (el) el.click();
-      await delay(200);
+      await delay(280);
       cb.setHighlight(null);
-      await delay(350);
+      await delay(500);
       return {};
     }
 
     case 'fill': {
-      cb.setHighlight(action.target, action.label || 'Type');
-      await delay(550);
+      cb.setHighlight(action.target, action.label || 'Typing');
+      await delay(750);
       const input = findEl<HTMLInputElement>(container, action.target);
       if (input) {
         input.focus();
         await typeIntoInput(input, action.value);
       }
-      await delay(350);
+      await delay(450);
       cb.setHighlight(null);
-      await delay(250);
+      await delay(350);
       return {};
     }
 
@@ -111,6 +129,17 @@ export async function executeAction(
       return {};
     }
 
+    case 'confirm': {
+      cb.setHighlight(null);
+      const ok = await cb.askConfirm(action.title, action.subtitle, action.fields);
+      if (!ok) {
+        /* User declined → abort the sequence */
+        return { done: true, cancelled: true };
+      }
+      await delay(300);
+      return {};
+    }
+
     case 'wait':
       await delay(action.ms);
       return {};
@@ -124,11 +153,11 @@ export async function runActionSequence(
   actions: AgentAction[],
   container: HTMLElement,
   cb: ExecutorCallbacks,
-): Promise<{ caseId?: string }> {
+): Promise<{ caseId?: string; cancelled?: boolean }> {
   for (const action of actions) {
     const result = await executeAction(action, container, cb);
     if (result.done) {
-      return { caseId: result.caseId };
+      return { caseId: result.caseId, cancelled: result.cancelled };
     }
   }
   return {};

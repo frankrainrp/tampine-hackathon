@@ -1,51 +1,46 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import styles from './MomRenewal.module.css';
-import Step1Start from './steps/Step1Start';
-import Step2Details from './steps/Step2Details';
-import Step3Upload from './steps/Step3Upload';
-import Step4Payment from './steps/Step4Payment';
+import styles from './CdcVoucher.module.css';
+import Step1Singpass from './steps/Step1Singpass';
+import Step2Balance from './steps/Step2Balance';
+import Step3Type from './steps/Step3Type';
+import Step4Location from './steps/Step4Location';
 import Step5Confirm from './steps/Step5Confirm';
 
-export type MomRenewalStep = 1 | 2 | 3 | 4 | 5;
+export type CdcVoucherStep = 1 | 2 | 3 | 4 | 5;
 
-export interface MomRenewalState {
-  step: MomRenewalStep;
+export type VoucherTypeId = 'hawkers' | 'supermarket' | 'heartland';
+
+export interface CdcVoucherState {
+  step: CdcVoucherStep;
+  /** Singpass auth (NRIC stored as masked/encrypted token in PII-mask mode) */
   nric: string;
-  uen: string;
-  workerName: string;
-  passNumber: string;
-  newExpiry: string;
-  passportUploaded: boolean;
-  photoUploaded: boolean;
-  paymentMethod: '' | 'nets' | 'paynow' | 'card';
+  loggedIn: boolean;
+  selectedTypes: VoucherTypeId[];
+  selectedLocation: string;
   caseId: string;
 }
 
-const INITIAL_STATE: MomRenewalState = {
+const INITIAL_STATE: CdcVoucherState = {
   step: 1,
   nric: '',
-  uen: '',
-  workerName: '',
-  passNumber: '',
-  newExpiry: '',
-  passportUploaded: false,
-  photoUploaded: false,
-  paymentMethod: '',
+  loggedIn: false,
+  selectedTypes: [],
+  selectedLocation: '',
   caseId: '',
 };
 
 /* ─── Step Indicator ─── */
-function StepBar({ current }: { current: MomRenewalStep }) {
-  const labels = ['Start', 'Details', 'Upload', 'Payment', 'Confirm'];
+function StepBar({ current }: { current: CdcVoucherStep }) {
+  const labels = ['Login', 'Balance', 'Vouchers', 'Location', 'Done'];
   return (
     <div className={styles.stepBar} data-agent-id="step-bar">
       {labels.map((label, i) => {
-        const num = (i + 1) as MomRenewalStep;
+        const num = (i + 1) as CdcVoucherStep;
         const isActive = num === current;
         const isDone = num < current;
         return (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <div className={`${styles.stepNode} ${isActive ? styles.stepNodeActive : ''}`}>
               <span
                 className={`${styles.stepDot} ${isActive ? styles.stepDotActive : ''} ${isDone ? styles.stepDotDone : ''}`}
@@ -65,13 +60,13 @@ function StepBar({ current }: { current: MomRenewalStep }) {
 }
 
 /* ─── Browser Chrome ─── */
-function BrowserChrome({ step }: { step: MomRenewalStep }) {
-  const urlMap: Record<MomRenewalStep, string> = {
-    1: 'mom.gov.sg/work-pass/renewal',
-    2: 'mom.gov.sg/work-pass/renewal/details',
-    3: 'mom.gov.sg/work-pass/renewal/documents',
-    4: 'mom.gov.sg/work-pass/renewal/payment',
-    5: 'mom.gov.sg/work-pass/renewal/confirmation',
+function BrowserChrome({ step }: { step: CdcVoucherStep }) {
+  const urlMap: Record<CdcVoucherStep, string> = {
+    1: 'cdcvouchers.gov.sg/login',
+    2: 'cdcvouchers.gov.sg/balance',
+    3: 'cdcvouchers.gov.sg/claim/types',
+    4: 'cdcvouchers.gov.sg/claim/location',
+    5: 'cdcvouchers.gov.sg/claim/done',
   };
   return (
     <div className={styles.chrome}>
@@ -88,47 +83,45 @@ function BrowserChrome({ step }: { step: MomRenewalStep }) {
   );
 }
 
-/* ─── Singapore Gov Header ─── */
+/* ─── CDC Header ─── */
 function GovHeader() {
   return (
     <>
       <div className={styles.govHeader}>
-        <div className={styles.govLogo}>MOM</div>
+        <div className={styles.govLogo}>CDC</div>
         <div className={styles.govTitleWrap}>
-          <span className={styles.govTitle}>Ministry of Manpower</span>
-          <span className={styles.govSubtitle}>An Official Singapore Government Service</span>
+          <span className={styles.govTitle}>Community Development Council</span>
+          <span className={styles.govSubtitle}>CDC Vouchers · Tampines</span>
         </div>
       </div>
       <div className={styles.govNav}>
-        Services / Work Passes / <b>Work Permit Renewal</b>
+        Home / <b>Claim CDC Vouchers</b>
       </div>
     </>
   );
 }
 
 /* ─── Main Component ─── */
-export default function MomRenewal({
+export default function CdcVoucher({
   onCaseCreated,
 }: {
   onCaseCreated?: (caseId: string) => void;
 }) {
-  const [state, setState] = useState<MomRenewalState>(INITIAL_STATE);
+  const [state, setState] = useState<CdcVoucherState>(INITIAL_STATE);
 
-  const update = (patch: Partial<MomRenewalState>) =>
-    setState((s) => ({ ...s, ...patch }));
+  const update = (patch: Partial<CdcVoucherState>) => setState((s) => ({ ...s, ...patch }));
+  const goToStep = (step: CdcVoucherStep) => update({ step });
 
-  const goToStep = (step: MomRenewalStep) => update({ step });
-
-  const completeRenewal = () => {
-    const caseId = `WP${Math.floor(Math.random() * 90000 + 10000)}-${Date.now().toString().slice(-4)}`;
+  const finalize = () => {
+    const caseId = `CDC2026-${Math.floor(Math.random() * 90000 + 10000)}`;
     update({ step: 5, caseId });
     onCaseCreated?.(caseId);
   };
 
   return (
-    <div className={styles.browser} data-agent-id="mom-renewal-browser">
+    <div className={styles.browser} data-agent-id="cdc-voucher-browser">
       <BrowserChrome step={state.step} />
-      <div className={styles.viewport} data-agent-id="mom-viewport">
+      <div className={styles.viewport} data-agent-id="cdc-viewport">
         <GovHeader />
         <div className={styles.page}>
           <StepBar current={state.step} />
@@ -138,31 +131,24 @@ export default function MomRenewal({
               initial={{ opacity: 0, x: 14 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -14 }}
-              transition={{ duration: 0.28 }}
+              transition={{ duration: 0.3 }}
             >
-              {state.step === 1 && <Step1Start onNext={() => goToStep(2)} />}
-              {state.step === 2 && (
-                <Step2Details
+              {state.step === 1 && (
+                <Step1Singpass
                   state={state}
                   update={update}
-                  onBack={() => goToStep(1)}
-                  onNext={() => goToStep(3)}
+                  onNext={() => goToStep(2)}
                 />
               )}
+              {state.step === 2 && <Step2Balance onNext={() => goToStep(3)} />}
               {state.step === 3 && (
-                <Step3Upload
-                  state={state}
-                  update={update}
-                  onBack={() => goToStep(2)}
-                  onNext={() => goToStep(4)}
-                />
+                <Step3Type state={state} update={update} onNext={() => goToStep(4)} />
               )}
               {state.step === 4 && (
-                <Step4Payment
+                <Step4Location
                   state={state}
                   update={update}
-                  onBack={() => goToStep(3)}
-                  onSubmit={completeRenewal}
+                  onConfirm={finalize}
                 />
               )}
               {state.step === 5 && <Step5Confirm state={state} />}
